@@ -240,3 +240,10 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+#sdk
+API/*
+mmio/*
+PluginEmpty/*
+PluginParentChild/*
+PluginSystemVersion/*
