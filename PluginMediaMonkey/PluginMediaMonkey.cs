@@ -743,7 +743,7 @@ namespace PluginMediaMonkey
 
             string mname = api.GetMeasureName();
             API.Log(API.LogType.Debug, "Mediamonkey.dll: Initialiying Plugin for Measure" + mname);
-            
+
             string mmVersion = api.ReadString("MMVersion", "");
             string PlayerName = api.ReadString("PlayerName", "",false);
             string PlayerPath = api.ReadString("PlayerPath", "", false);
@@ -762,7 +762,7 @@ namespace PluginMediaMonkey
                             break;
 
                         case "5":
-                            measure = new ParentMeasure(new MediaMonkey4());
+                            measure = new ParentMeasure(new MediaMonkey5());
                             break;
 
                         default:
@@ -781,7 +781,7 @@ namespace PluginMediaMonkey
                             break;
 
                         case "5":
-                            measure = new ParentMeasure(new MediaMonkey4(PlayerPath));
+                            measure = new ParentMeasure(new MediaMonkey5(PlayerPath));
                             break;
 
                         default:
