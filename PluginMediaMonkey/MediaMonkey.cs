@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Microsoft.Win32;
 using MediaMonkeyNet;
+using System.IO;
+using System.Linq;
 
 namespace MediaMonkey
 {
@@ -132,19 +134,43 @@ namespace MediaMonkey
         {
             //To check if mediamonkey is running
             //First check if a process id was already set previously, 
-            //Verify if that process is actually mediamonkey and return true
-            //Otherwise clear the process id and the initiated status
+            //Verify if that process is mediamonkey and return true
+            //Otherwise clear the process id and initiated status
             //If no process id was found, look for the mediamonkey process
             //and if found, save its process id and return true
 
             if (MediaMonkeyProcessId == 0)
             {
-                Process[] mmProcessCollection = Process.GetProcessesByName("MediaMonkey");
-                if (mmProcessCollection.Length > 0)
+                List<Process> mmProcessCollection = Process.GetProcessesByName("MediaMonkey").ToList();
+                mmProcessCollection.AddRange(Process.GetProcessesByName("MEDIAM~2"));
+
+                if (mmProcessCollection.Count > 0)
                 {
-                    MediaMonkeyProcessId = mmProcessCollection[0].Id;
-                    return true;
+                    // Make sure that the found the correct process
+
+                    foreach (var proc in mmProcessCollection)
+                    {
+                        try
+                        {
+                            if (String.Equals(NormalizePath(proc.MainModule.FileName)
+                                , MediaMonkeyPath
+                                , StringComparison.OrdinalIgnoreCase))
+                            {
+                                MediaMonkeyProcessId = proc.Id;
+                                return true;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // Nothing to do here but all exceptions
+                            // MUST be handled to prevent crashing
+                            // the host application
+                        }
+                    }
                 }
+                // Couldn't find the correct process, dispose of the mm object
+                MediaMonkeyProcessId = 0;
+                Dispose();
             }
             else
             {
@@ -152,10 +178,10 @@ namespace MediaMonkey
                 {
                     Process mmProc = Process.GetProcessById(MediaMonkeyProcessId);
 
-                    //Make sure that the process actually is MediaMonkey
-                    //in case the application was closed and the ID was recycled
+                    // Verify that the previously found ID actually is Mediamonkey
+                    // It's unlikely, but not impossible that another process has the id
 
-                    if (mmProc.MainModule.FileName == MediaMonkeyPath)
+                    if (String.Equals(NormalizePath(mmProc.MainModule.FileName), MediaMonkeyPath, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -172,10 +198,7 @@ namespace MediaMonkey
                     Dispose();
                 }
             }
-
             return false;
-
-
         }
 
         public bool IsActive()
@@ -202,6 +225,13 @@ namespace MediaMonkey
         {
             Initialized = false;
             DisposeDate = DateTime.Now;
+        }
+
+        private string NormalizePath(string path)
+        {
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
         }
 
         //Properties
