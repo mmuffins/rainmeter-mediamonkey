@@ -245,7 +245,7 @@ namespace PluginMediaMonkey
                     }
 
                 case MeasureType.Status:
-                    return MediaMonkey.IsActive() ? 1.0 : 0.0;
+                    return MediaMonkey.IsRunning() ? 1.0 : 0.0;
 
                 case MeasureType.Volume:
                     return MediaMonkey.Volume();
@@ -342,7 +342,7 @@ namespace PluginMediaMonkey
                     }
 
                 case MeasureType.Status:
-                    return MediaMonkey.IsActive() ? "1" : "0";
+                    return MediaMonkey.IsRunning() ? "1" : "0";
 
                 case MeasureType.Title:
                     return MediaMonkey.Title();

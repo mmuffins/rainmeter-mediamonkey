@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Linq;
 using System.Diagnostics;
 using Microsoft.Win32;
 using MediaMonkeyNet;
 using System.IO;
-using System.Linq;
 
 namespace MediaMonkey
 {
@@ -29,10 +29,11 @@ namespace MediaMonkey
         void SetShuffle(int Shuffle);
         void SetRepeat(int Repeat);
         void SetVolume(int Volume);
+        void Update();
+        void Dispose();
 
         bool Initialize();
         bool IsInitialized();
-        bool IsActive();
         bool IsRunning();
         bool IsPlaying();
         bool IsPaused();
@@ -47,6 +48,7 @@ namespace MediaMonkey
         string Cover();
         string File();
 
+
         int MajorVersion();
         int Year();
         int Rating();
@@ -60,16 +62,16 @@ namespace MediaMonkey
     {
         readonly int MMMajorVersion = 4;
         DateTime DisposeDate;
-        static int DisposeTimeOut = 4000; //in milliseconds
-        static int MediaMonkeyProcessId;
+        int DisposeTimeOut = 4000; //in milliseconds
+        int MediaMonkeyProcessId;
 
-        static bool Initialized = false;
-        static string MediaMonkeyPath;
+        bool Initialized = false;
+        string MediaMonkeyPath;
 
 
-        static SongsDB.SDBPlayer SDBPlayer;
-        static SongsDB.SDBApplication SDBApplication;
-        static SongsDB.SDBSongData SDBSongData;
+        SongsDB.SDBPlayer SDBPlayer;
+        SongsDB.SDBApplication SDBApplication;
+        SongsDB.SDBSongData SDBSongData;
 
         public MediaMonkey4()
         {
@@ -227,6 +229,8 @@ namespace MediaMonkey
             DisposeDate = DateTime.Now;
         }
 
+        public void Update() { }
+
         private string NormalizePath(string path)
         {
             return Path.GetFullPath(new Uri(path).LocalPath)
@@ -234,11 +238,12 @@ namespace MediaMonkey
                        .ToUpperInvariant();
         }
 
+
         //Properties
 
         public int MajorVersion()
         {
-            return this.MMMajorVersion;
+            return MMMajorVersion;
         }
 
         public string Title()
@@ -695,102 +700,120 @@ namespace MediaMonkey
     public class MediaMonkey5 : IMediaMonkey
     {
         readonly int MMMajorVersion = 5;
-        static int CooldownDelay = 1000; //in milliseconds
+        private int CooldownDelay = 1000; //in milliseconds
         private bool OnCooldown;
 
-        static int MediaMonkeyProcessId;
-        static string MediaMonkeyPath;
+        private Track CurrentTrack;
 
+        int MediaMonkeyProcessId;
+        string MediaMonkeyPath;
 
-        static SongsDB.SDBPlayer SDBPlayer;
-        static SongsDB.SDBApplication SDBApplication;
-        static SongsDB.SDBSongData SDBSongData;
-
-        static MediaMonkeyNet.MediaMonkeyNet mm;
+        private MediaMonkeyNet.MediaMonkeyNet mm;
 
         public MediaMonkey5()
         {
             MediaMonkeyPath = GetExecutablePath();
-            Initialize();
         }
 
         public MediaMonkey5(string ExecutablePath)
         {
-            if (string.IsNullOrEmpty(ExecutablePath))
-            {
-                MediaMonkeyPath = GetExecutablePath();
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(ExecutablePath))
             {
                 MediaMonkeyPath = ExecutablePath;
             }
-            Initialize();
         }
 
         public bool Initialize()
         {
-            Console.WriteLine("init. cooldown = " + OnCooldown);
             if (OnCooldown)
             {
-                Console.WriteLine("exit init");
                 return false;
             }
 
             // Polling at high rates is generally OK
             // but trying to initialize the api at high rates
-            // can cause issue for MM
+            // can cause issues for MM
 
             OnCooldown = true;
-            Console.WriteLine("set cooldown = " + OnCooldown);
 
             System.Threading.Timer cooldown = null;
             cooldown = new System.Threading.Timer((obj) =>
             {
                 OnCooldown = false;
-                Console.WriteLine("reset cooldown = " + OnCooldown);
                 cooldown.Dispose();
             },
             null, CooldownDelay, System.Threading.Timeout.Infinite);
 
-
-
             try
             {
-                mm = new MediaMonkeyNet.MediaMonkeyNet("http://localhost:9222");
-                List<RemoteSessionsResponse> sessions = mm.GetAvailableSessions();
-                var endpointUrl = sessions[0].webSocketDebuggerUrl;
-                mm.SetActiveSession(endpointUrl);
-                return true;
+                mm = new MediaMonkeyNet.MediaMonkeyNet();
+                return IsInitialized();
             }
             catch
             {
-                mm = null;
+                mm.Dispose();
                 return false;
             }
         }
 
         public bool IsInitialized()
         {
-            return mm.HasActiveSession();
+            try
+            {
+                if (mm != null)
+                {
+                    return mm.HasActiveSession();
+                }
+            }
+            catch
+            {
+                mm.Dispose();
+            }
+
+            return false;
         }
 
         public bool IsRunning()
         {
             //To check if mediamonkey is running
             //First check if a process id was already set previously, 
-            //Verify if that process is actually mediamonkey and return true
-            //Otherwise clear the process id and the initiated status
+            //Verify if that process is mediamonkey and return true
+            //Otherwise clear the process id and initiated status
             //If no process id was found, look for the mediamonkey process
             //and if found, save its process id and return true
 
             if (MediaMonkeyProcessId == 0)
             {
-                Process[] mmProcessCollection = Process.GetProcessesByName("MediaMonkey");
-                if (mmProcessCollection.Length > 0)
+                List<Process> mmProcessCollection = Process.GetProcessesByName("MediaMonkey").ToList();
+                mmProcessCollection.AddRange(Process.GetProcessesByName("MEDIAM~2"));
+
+                if (mmProcessCollection.Count > 0)
                 {
-                    MediaMonkeyProcessId = mmProcessCollection[0].Id;
-                    return true;
+                    // Make sure that the found the correct process
+
+                    foreach (var proc in mmProcessCollection)
+                    {
+                        try
+                        {
+                            if (String.Equals(NormalizePath(proc.MainModule.FileName)
+                                , MediaMonkeyPath
+                                , StringComparison.OrdinalIgnoreCase))
+                            {
+                                MediaMonkeyProcessId = proc.Id;
+                                return true;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // Nothing to do here but all exceptions
+                            // MUST be handled to prevent crashing
+                            // the host application
+                        }
+                    }
                 }
+                // Couldn't find the correct process, dispose of the mm object
+                MediaMonkeyProcessId = 0;
+                Dispose();
             }
             else
             {
@@ -798,10 +821,10 @@ namespace MediaMonkey
                 {
                     Process mmProc = Process.GetProcessById(MediaMonkeyProcessId);
 
-                    //Make sure that the process actually is MediaMonkey
-                    //in case the application was closed and the ID was recycled
+                    // Verify that the previously found ID actually is Mediamonkey
+                    // It's unlikely, but not impossible that another process has the id
 
-                    if (mmProc.MainModule.FileName == MediaMonkeyPath)
+                    if (String.Equals(NormalizePath(mmProc.MainModule.FileName), MediaMonkeyPath, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -818,106 +841,113 @@ namespace MediaMonkey
                     Dispose();
                 }
             }
-
             return false;
-
-
         }
 
-        public bool IsActive()
+        private string NormalizePath(string path)
         {
-
-            if (mm != null || Initialize())
-            {
-                try
-                {
-                    if (mm.HasActiveSession())
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception)
-                {
-                    mm = null;
-                }
-            }
-
-            return false;
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
         }
 
         public void Dispose()
         {
-            mm = null;
+            CurrentTrack = null;
+
+            if (mm != null)
+            {
+                try
+                {
+                    mm.Dispose();
+                }
+                catch
+                {
+                }
+
+                mm = null;
+            }
+        }
+
+        public void Update()
+        {
+            // Attempt to update the currently playing track
+            if (IsInitialized() || Initialize())
+            {
+                try
+                {
+                    CurrentTrack = mm.GetCurrentTrack();
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
+            }
         }
 
         //Properties
 
         public int MajorVersion()
         {
-            return this.MMMajorVersion;
+            return MMMajorVersion;
         }
 
         public string Title()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                Console.WriteLine("gettitle");
-
-                try
-                {
-                    return mm.GetCurrentTrack().Title;
-                }
-                catch (Exception)
-                {
-                    mm = null;
-                }
+                return CurrentTrack.Title;
             }
-
             return "";
         }
 
         public string Artist()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return mm.GetCurrentTrack().Artist;
-
+                return CurrentTrack.ArtistName;
             }
-
             return "";
         }
 
         public bool IsPlaying()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return SDBPlayer.isPlaying;
+                try
+                {
+                    return mm.IsPlaying;
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public bool IsPaused()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return SDBPlayer.isPaused;
+                try
+                {
+                    return mm.IsPaused;
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public string Album()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.Album.Name;
+                return CurrentTrack.AlbumName;
             }
-
             return "";
         }
 
@@ -927,9 +957,9 @@ namespace MediaMonkey
             //since MediaMonkey supports
             //string values as track number
             //TrackOrder as int is deprecated since MM3
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.TrackOrderStr;
+                return CurrentTrack.TrackOrder;
             }
 
             return "";
@@ -937,11 +967,10 @@ namespace MediaMonkey
 
         public int Year()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.Year;
+                return CurrentTrack.Year;
             }
-
             return 0;
         }
 
@@ -961,9 +990,9 @@ namespace MediaMonkey
             // 90 = 4.5 stars
             // 100 = 5 stars
 
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.Rating;
+                return CurrentTrack.Rating;
             }
 
             return -1;
@@ -971,82 +1000,76 @@ namespace MediaMonkey
 
         public bool IsShuffle()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return SDBPlayer.isShuffle;
+                try
+                {
+                    return mm.IsShuffle;
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
-
             return false;
         }
 
         public string Genre()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.Genre;
+                return CurrentTrack.Genre;
             }
-
             return "";
         }
 
         public string Cover()
         {
-            //Returns path of the album art cover
-            //Art that is stored as tag can not be displayed
-            //Only albumart tagged as 'Cover (front)' in MM is considered
-            //If multiple covers are found, the higher sorted one
-            //gets precedence
-
-            string AlbumArtPath = "";
-
-            if (IsActive())
-            {
-                SongsDB.SDBAlbumArtList AlbumArt = SDBPlayer.CurrentSong.AlbumArt;
-
-                if (AlbumArt.Count > 0)
-                {
-                    for (int i = AlbumArt.Count - 1; i >= 0; i--)
-                    {
-                        if ((AlbumArt.Item[i].ItemType == 3) && (AlbumArt.Item[i].ItemStorage == 1))
-                        {
-                            AlbumArtPath = AlbumArt.Item[i].PicturePath;
-                        }
-                    }
-                }
-            }
-
-            return AlbumArtPath;
+            //Currently not possible
+            return "";
         }
 
         public string File()
         {
-            if (IsActive())
+            if (CurrentTrack != null)
             {
-                return SDBPlayer.CurrentSong.Path;
+                return CurrentTrack.Path;
             }
-
             return "";
         }
 
         public int Duration()
         {
-            //Length of playing track in Seconds
-            if (IsActive())
+            //Length of current track in Seconds
+            if (IsInitialized() || Initialize())
             {
-                int mmDuration = SDBPlayer.CurrentSongLength;
-                return (mmDuration / 1000);
+                try
+                {
+                    int mmDuration = mm.TrackLength;
+                    return (mmDuration / 1000);
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
-
             return 0;
         }
 
         public int Position()
         {
             //Current position of the playing track in seconds
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                int mmPosition = SDBPlayer.PlaybackTime;
-                return (mmPosition / 1000);
+                try
+                {
+                    int mmDuration = mm.TrackPosition;
+                    return (mmDuration / 1000);
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
 
             return 0;
@@ -1055,9 +1078,9 @@ namespace MediaMonkey
         public int Progress()
         {
             //Playback percentage of the current track
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return (int)(((double)SDBPlayer.PlaybackTime / SDBPlayer.CurrentSongLength) * 100);
+                return (int)(((double)mm.TrackPosition / mm.TrackLength) * 100);
             }
 
             return 0;
@@ -1066,9 +1089,9 @@ namespace MediaMonkey
         public int Volume()
         {
             //Volume of the player between 0 and 100
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return (int)(SDBPlayer.Volume * 100);
+                return (int)(mm.Volume * 100);
             }
 
             return 0;
@@ -1076,11 +1099,17 @@ namespace MediaMonkey
 
         public bool IsRepeat()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                return SDBPlayer.isRepeat;
+                try
+                {
+                    return mm.IsRepeat;
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
             }
-
             return false;
         }
 
@@ -1088,72 +1117,66 @@ namespace MediaMonkey
 
         public void Pause()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.Pause();
+                mm.PausePlayback();
             }
         }
 
         public void Play()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.Play();
+                mm.StartPlayback();
             }
         }
 
         public void PlayPause()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                if (SDBPlayer.isPlaying)
-                {
-                    SDBPlayer.Pause();
-                }
-                else
-                {
-                    SDBPlayer.Play();
-                }
+                mm.TogglePlayback();
             }
         }
 
         public void Stop()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.Stop();
+                mm.StopPlayback();
             }
         }
 
         public void Next()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.Next();
+                mm.NextTrack();
             }
         }
 
         public void Previous()
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.Previous();
+                mm.PreviousTrack();
             }
         }
 
         public void SetRating(int Rating)
         {
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
-                SDBPlayer.CurrentSong.Rating = Rating;
-                SDBPlayer.CurrentSong.UpdateDB();
+                mm.SetRating(Rating);
             }
         }
 
         public string GetExecutablePath()
         {
-            //Attempts to find path to the mediamonkey exe
-            return Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Media\\MediaMonkey\\shell\\open\\command", "", "").ToString();
+            //Attempts to find path to the mediamonkey executable
+            return Registry.GetValue(
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Media\\MediaMonkey\\shell\\open\\command"
+                , "", "").ToString();
         }
 
         public void OpenPlayer()
@@ -1213,7 +1236,7 @@ namespace MediaMonkey
             //Set playback position to the given value
             //e.g. SetPosition(50) jumps to 50% of the playing track 
             //Values above 100 or below 0 set the time to 100% and 0%
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
                 if (Position > 100)
                 {
@@ -1224,36 +1247,35 @@ namespace MediaMonkey
                 {
                     Position = 0;
                 }
-
-                SDBPlayer.PlaybackTime = (SDBPlayer.CurrentSongLength / 100) * Position;
+                mm.SetTrackPosition((mm.TrackLength / 100) * Position);
             }
         }
 
         public void SetShuffle(int Shuffle)
         {
-            //1 - Shuffle on
-            //0 - Shuffle off
-            //-1 - Toggle shuffle
-            if (IsActive())
+            // 1 - Shuffle on
+            // 0 - Shuffle off
+            // -1 - Toggle shuffle
+            if (IsInitialized() || Initialize())
             {
                 switch (Shuffle)
                 {
                     case 1:
-                        SDBPlayer.isShuffle = true;
+                        mm.SetShuffle(true);
                         break;
 
                     case 0:
-                        SDBPlayer.isShuffle = false;
+                        mm.SetShuffle(false);
                         break;
 
                     case -1:
-                        if (SDBPlayer.isShuffle)
+                        if (mm.IsShuffle)
                         {
-                            SDBPlayer.isShuffle = false;
+                            mm.SetShuffle(false);
                         }
                         else
                         {
-                            SDBPlayer.isShuffle = true;
+                            mm.SetShuffle(true);
                         }
                         break;
 
@@ -1265,30 +1287,30 @@ namespace MediaMonkey
 
         public void SetRepeat(int Repeat)
         {
-            //1 - Repeat on
-            //0 - Repeat off
-            //-1 - Toggle repeat
+            // 1 - Repeat on
+            // 0 - Repeat off
+            // -1 - Toggle repeat
 
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
                 switch (Repeat)
                 {
                     case 1:
-                        SDBPlayer.isRepeat = true;
+                        mm.SetRepeat(true);
                         break;
 
                     case 0:
-                        SDBPlayer.isRepeat = false;
+                        mm.SetRepeat(false);
                         break;
 
                     case -1:
-                        if (SDBPlayer.isRepeat)
+                        if (mm.IsRepeat)
                         {
-                            SDBPlayer.isRepeat = false;
+                            mm.SetRepeat(false);
                         }
                         else
                         {
-                            SDBPlayer.isRepeat = true;
+                            mm.SetRepeat(true);
                         }
                         break;
 
@@ -1302,7 +1324,7 @@ namespace MediaMonkey
         {
             //Set volume of the player to the given value
             //Values above 100 or below 0 set the volume to 100% and 0%
-            if (IsActive())
+            if (IsInitialized() || Initialize())
             {
                 if (Volume > 100)
                 {
@@ -1313,7 +1335,7 @@ namespace MediaMonkey
                 {
                     Volume = 0;
                 }
-                SDBPlayer.Volume = ((double)Volume / 100.0);
+                mm.SetVolume((double)Volume / 100.0);
             }
         }
     }
