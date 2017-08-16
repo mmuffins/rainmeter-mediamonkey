@@ -1023,11 +1023,48 @@ namespace MediaMonkey
             return "";
         }
 
+
         public string Cover()
         {
-            //Currently not possible
-            return "";
+            // Returns path of the album art cover
+            // Currently, art stored in tags is not supported
+            // albumart tagged as 'Cover (front)' is preferred
+            // If multiple covers are found, the higher sorted one
+            // gets precedence
+            // If no correctly tagged art ist found, the hightest sorted
+            // gets precedence
+
+            string AlbumArtPath = "";
+
+            if (IsInitialized() || Initialize())
+            {
+                try
+                {
+                    List<Cover> coverList = mm.GetCoverList().Where(x => x.CoverStorage == 1).ToList();
+
+                    if (coverList.Count > 0)
+                    {
+
+                        var covers = coverList.Where(x => x.CoverType == 3).ToList();
+                        if (covers.Count > 0)
+                        {
+                            AlbumArtPath = covers.FirstOrDefault().PicturePath;
+                        }
+                        else
+                        {
+                            // couldn't find art with the correct tag, use the first one
+                            AlbumArtPath = coverList.FirstOrDefault().PicturePath;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                }
+            }
+            return AlbumArtPath;
         }
+
 
         public string File()
         {
@@ -1045,8 +1082,8 @@ namespace MediaMonkey
             {
                 try
                 {
-                    int mmDuration = mm.TrackLength;
-                    return (mmDuration / 1000);
+                    long mmDuration = mm.TrackLength;
+                    return (int)(mmDuration / 1000);
                 }
                 catch (Exception)
                 {
@@ -1063,8 +1100,8 @@ namespace MediaMonkey
             {
                 try
                 {
-                    int mmDuration = mm.TrackPosition;
-                    return (mmDuration / 1000);
+                    long mmDuration = mm.TrackPosition;
+                    return (int)(mmDuration / 1000);
                 }
                 catch (Exception)
                 {
@@ -1247,7 +1284,7 @@ namespace MediaMonkey
                 {
                     Position = 0;
                 }
-                mm.SetTrackPosition((mm.TrackLength / 100) * Position);
+                mm.SetTrackPosition(((int)mm.TrackLength / 100) * Position);
             }
         }
 
