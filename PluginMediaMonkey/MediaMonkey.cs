@@ -1040,7 +1040,7 @@ namespace MediaMonkey
             {
                 try
                 {
-                    List<Cover> coverList = mm.GetCoverList().Where(x => x.CoverStorage == 1).ToList();
+                    List<Cover> coverList = mm.GetCoverList(false).Where(x => x.CoverStorage == 1).ToList();
 
                     if (coverList.Count > 0)
                     {
