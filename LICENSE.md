@@ -1,7 +1,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2017 mmuffins
+Copyright (c) 2017 Michael Kellner
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,3 +20,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+--------
+
+Third party software and libraries used:
+
+MediaMonkeyNet https://github.com/mmuffins/MediaMonkeyNet
+Copyright (c) 2017 Michael Kellner
+License (MIT) https://github.com/mmuffins/MediaMonkeyNet/blob/master/LICENSE
+
