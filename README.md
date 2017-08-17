@@ -1,8 +1,5 @@
 # Rainmeter-MediaMonkey
-A rainmeter plugin to get data from [MediaMonkey](http://www.mediamonkey.com). The plugin was designed with compatibility with the [official NowPlaying plugin](https://docs.rainmeter.net/manual-beta/plugins/nowplaying/) in mind, so most configurations for NowPlaying should be usable with minimal configuration changes.
-
-Currently only MediaMonkey version 4 is supported, support for version 5 is planned once a stable version is available.
-
+A rainmeter plugin for [MediaMonkey](http://www.mediamonkey.com). The plugin was designed with compatibility with the [official NowPlaying plugin](https://docs.rainmeter.net/manual-beta/plugins/nowplaying/) in mind, so most configurations for NowPlaying should be usable with minimal configuration changes.
 
 ## Usage
 Copy MediaMonkey.dll in your \Rainmeter\Plugins directory and create a measure with settings Plugin=MediaMonkey.
@@ -20,14 +17,26 @@ Also see the official [Rainmeter manual](https://docs.rainmeter.net/manual/measu
 
 ### Measures
 - __Album__ - Album name of the current song.
+- __AlbumArtist__ - Album Artist name of the current song.
 - __Artist__ - Artist of the current song.
-- __Cover__ - Path to the cover  of the current song. The image needs to be saved as file (as opposed to files stored in the tags) and be configured as image type 'Cover (front)'.
+- __Conductor__ - Conductor of the current song.
+- __Composer__ - Composer of the current song.
+- __Cover__ - Path to the cover  of the current song. At the moment, only images stored as separate file are supported. Images tagged as 'Cover (Front)' get precedence over other artwork.
+- __Custom1__ - Custom1 property of the current song.
+- __Custom2__ - Custom2 property of the current song.
+- __Custom3__ - Custom3 property of the current song.
+- __Custom4__ - Custom4 property of the current song.
+- __Custom5__ - Custom5 property of the current song.
+- __Disc__ - Disc number of the current song. This measure should be used as string since the disc number in MediaMonkey can also be a string.
 - __Duration__ - Length of the current song in seconds. If used as string, the format returned is MM:SS.
 - __File__ - File path to the current song.
+- __FileID__ - The internal MediaMonkey ID of the current file.
 - __Genre__ - Genre of the current song.
+- __Grouping__ - Grouping of the current song.
 - __Number__ - Track number of the current song. This measure should be used as string since the track number in MediaMonkey can also be a string.
 - __Position__ - Playback position of the current in seconds. If used as string, the format returned is MM:SS.
 - __Progress__ - Playback position of the current song as percentage.
+- __Publisher__ - Publisher name of the current song.
 - __Rating__ - Rating of the current song from 0.0 to 5.0. 0.0 is returned for 0 (i.e. the bomb), -1 is returned for an unknown rating.
 - __Repeat__ - 0 if repeat is off, 1 if on.
 - __Shuffle__ - 0 if shuffle is off, 1 if on.
@@ -36,6 +45,7 @@ Also see the official [Rainmeter manual](https://docs.rainmeter.net/manual/measu
 - __Title__ - Title of the current song.
 - __Volume__ - Player volume from 0 to 100.
 - __Year__ - Year of the current song.
+
 
 ### Bangs
 - __Play__ - Plays the current song.

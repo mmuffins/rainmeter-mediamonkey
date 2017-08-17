@@ -47,7 +47,17 @@ namespace MediaMonkey
         string Genre();
         string Cover();
         string File();
-
+        string Custom1();
+        string Custom2();
+        string Custom3();
+        string Custom4();
+        string Custom5();
+        string AlbumArtist();
+        string Publisher();
+        string Composer();
+        string Grouping();
+        string Disc();
+        string Conductor();
 
         int MajorVersion();
         int Year();
@@ -56,6 +66,7 @@ namespace MediaMonkey
         int Position();
         int Progress();
         int Volume();
+        int FileID();
     }
 
     public class MediaMonkey4 : IMediaMonkey
@@ -229,7 +240,10 @@ namespace MediaMonkey
             DisposeDate = DateTime.Now;
         }
 
-        public void Update() { }
+        public void Update()
+        {
+            // Not implemented for MM4
+        }
 
         private string NormalizePath(string path)
         {
@@ -461,6 +475,130 @@ namespace MediaMonkey
             }
 
             return false;
+        }
+
+        public string AlbumArtist()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.AlbumArtistName;
+            }
+
+            return "";
+        }
+
+        public string Custom1()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Custom1;
+            }
+
+            return "";
+        }
+
+        public string Custom2()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Custom2;
+            }
+
+            return "";
+        }
+
+        public string Custom3()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Custom3;
+            }
+
+            return "";
+        }
+
+        public string Custom4()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Custom4;
+            }
+
+            return "";
+        }
+
+        public string Custom5()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Custom5;
+            }
+
+            return "";
+        }
+
+        public string Publisher()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Publisher;
+            }
+
+            return "";
+        }
+
+        public int FileID()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.ID;
+            }
+
+            return -1;
+        }
+
+        public string Composer()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.MusicComposer;
+            }
+
+            return "";
+        }
+
+        public string Grouping()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Grouping;
+            }
+
+            return "";
+        }
+
+        public string Disc()
+        {
+            //Value is returned as string
+            //since MediaMonkey supports
+            //string values as disc number
+
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.DiscNumberStr;
+            }
+
+            return "";
+        }
+
+        public string Conductor()
+        {
+            if (IsActive())
+            {
+                return SDBPlayer.CurrentSong.Conductor;
+            }
+
+            return "";
         }
 
         //Actions
@@ -1023,7 +1161,6 @@ namespace MediaMonkey
             return "";
         }
 
-
         public string Cover()
         {
             // Returns path of the album art cover
@@ -1064,7 +1201,6 @@ namespace MediaMonkey
             }
             return AlbumArtPath;
         }
-
 
         public string File()
         {
@@ -1148,6 +1284,118 @@ namespace MediaMonkey
                 }
             }
             return false;
+        }
+
+        public string Disc()
+        {
+            //Value is returned as string
+            //since MediaMonkey supports
+            //string values as disc number
+
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.DiscNumber;
+            }
+            return "";
+        }
+
+        public string Custom1()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Custom1;
+            }
+            return "";
+        }
+
+        public string Custom2()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Custom2;
+            }
+            return "";
+        }
+
+        public string Custom3()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Custom3;
+            }
+            return "";
+        }
+
+        public string Custom4()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Custom4;
+            }
+            return "";
+        }
+
+        public string Custom5()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Custom5;
+            }
+            return "";
+        }
+
+        public string Conductor()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Conductor;
+            }
+            return "";
+        }
+
+        public int FileID()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.ID;
+            }
+            return -1;
+        }
+
+        public string Grouping()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Grouping;
+            }
+            return "";
+        }
+
+        public string AlbumArtist()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.AlbumArtistName;
+            }
+            return "";
+        }
+
+        public string Publisher()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.Publisher;
+            }
+            return "";
+        }
+
+        public string Composer()
+        {
+            if (CurrentTrack != null)
+            {
+                return CurrentTrack.MusicComposer;
+            }
+            return "";
         }
 
         //Actions

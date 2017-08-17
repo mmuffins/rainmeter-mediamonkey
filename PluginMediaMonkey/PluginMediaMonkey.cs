@@ -18,14 +18,26 @@ namespace PluginMediaMonkey
         internal enum MeasureType
         {
             Album,
+            AlbumArtist,
             Artist,
+            Composer,
+            Conductor,
             Cover,
+            Custom1,
+            Custom2,
+            Custom3,
+            Custom4,
+            Custom5,
+            Disc,
             Duration,
             File,
+            FileID,
             Genre,
+            Grouping,
             Number,
             Position,
             Progress,
+            Publisher,
             Rating,
             Repeat,
             Shuffle,
@@ -60,12 +72,48 @@ namespace PluginMediaMonkey
                     Type = MeasureType.Album;
                     break;
 
+                case "albumartist":
+                    Type = MeasureType.AlbumArtist;
+                    break;
+
                 case "artist":
                     Type = MeasureType.Artist;
                     break;
 
                 case "cover":
                     Type = MeasureType.Cover;
+                    break;
+
+                case "composer":
+                    Type = MeasureType.Composer;
+                    break;
+
+                case "conductor":
+                    Type = MeasureType.Conductor;
+                    break;
+
+                case "custom1":
+                    Type = MeasureType.Custom1;
+                    break;
+
+                case "custom2":
+                    Type = MeasureType.Custom2;
+                    break;
+
+                case "custom3":
+                    Type = MeasureType.Custom3;
+                    break;
+
+                case "custom4":
+                    Type = MeasureType.Custom4;
+                    break;
+
+                case "custom5":
+                    Type = MeasureType.Custom5;
+                    break;
+
+                case "disc":
+                    Type = MeasureType.Disc;
                     break;
 
                 case "duration":
@@ -76,8 +124,16 @@ namespace PluginMediaMonkey
                     Type = MeasureType.File;
                     break;
 
+                case "fileid":
+                    Type = MeasureType.FileID;
+                    break;
+
                 case "genre":
                     Type = MeasureType.Genre;
+                    break;
+
+                case "grouping":
+                    Type = MeasureType.Grouping;
                     break;
 
                 case "number":
@@ -90,6 +146,10 @@ namespace PluginMediaMonkey
 
                 case "progress":
                     Type = MeasureType.Progress;
+                    break;
+
+                case "publisher":
+                    Type = MeasureType.Publisher;
                     break;
 
                 case "rating":
@@ -208,6 +268,9 @@ namespace PluginMediaMonkey
                 case MeasureType.Duration:
                     return MediaMonkey.Duration();
 
+                case MeasureType.FileID:
+                    return MediaMonkey.FileID();
+
                 case MeasureType.Position:
                     return MediaMonkey.Position();
 
@@ -272,11 +335,38 @@ namespace PluginMediaMonkey
                 case MeasureType.Album:
                     return MediaMonkey.Album();
 
+                case MeasureType.AlbumArtist:
+                    return MediaMonkey.AlbumArtist();
+
                 case MeasureType.Artist:
                     return MediaMonkey.Artist();
 
+                case MeasureType.Composer:
+                    return MediaMonkey.Composer();
+
+                case MeasureType.Conductor:
+                    return MediaMonkey.Conductor();
+
                 case MeasureType.Cover:
                     return MediaMonkey.Cover();
+
+                case MeasureType.Custom1:
+                    return MediaMonkey.Custom1();
+
+                case MeasureType.Custom2:
+                    return MediaMonkey.Custom2();
+
+                case MeasureType.Custom3:
+                    return MediaMonkey.Custom3();
+
+                case MeasureType.Custom4:
+                    return MediaMonkey.Custom4();
+
+                case MeasureType.Custom5:
+                    return MediaMonkey.Custom5();
+
+                case MeasureType.Disc:
+                    return MediaMonkey.Disc();
 
                 case MeasureType.Duration:
                     TimeSpan mmDuration = TimeSpan.FromSeconds(MediaMonkey.Duration());
@@ -297,8 +387,15 @@ namespace PluginMediaMonkey
                 case MeasureType.File:
                     return MediaMonkey.File();
 
+                case MeasureType.FileID:
+                    return MediaMonkey.FileID().ToString();
+
+
                 case MeasureType.Genre:
                     return MediaMonkey.Genre();
+
+                case MeasureType.Grouping:
+                    return MediaMonkey.Grouping();
 
                 case MeasureType.Number:
                     return MediaMonkey.Number();
@@ -311,6 +408,9 @@ namespace PluginMediaMonkey
 
                 case MeasureType.Progress:
                     return MediaMonkey.Progress().ToString();
+
+                case MeasureType.Publisher:
+                    return MediaMonkey.Publisher();
 
                 case MeasureType.Rating:
                     int mmRating = MediaMonkey.Rating();
@@ -704,6 +804,8 @@ namespace PluginMediaMonkey
 
             internal override double Update()
             {
+                MediaMonkey.Update();
+
                 if (ParentMeasure != null)
                 {
                     return ParentMeasure.ReturnValue(Type);
