@@ -92,7 +92,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="MediaMonkey.cs" />
+    <Compile Include="MediaMonkey\IMediaMonkey.cs" />
+    <Compile Include="MediaMonkey\MediaMonkey4.cs" />
+    <Compile Include="MediaMonkey\MediaMonkey5.cs" />
     <Compile Include="PluginMediaMonkey.cs" />
     <Compile Include="$(SolutionDir)..\API\RainmeterAPI.cs" />
   </ItemGroup>
