@@ -16,7 +16,7 @@ namespace MediaMonkey
     public class MediaMonkey5 : IMediaMonkey
     {
         readonly int MMMajorVersion = 5;
-        private int CooldownDelay = 1000; //in milliseconds
+        private int CooldownDelay = 3000; //in milliseconds
         private bool OnCooldown;
 
         private Track CurrentTrack;
@@ -41,7 +41,7 @@ namespace MediaMonkey
 
         public bool Initialize()
         {
-            if (OnCooldown)
+            if (OnCooldown || !IsRunning())
             {
                 return false;
             }
@@ -67,10 +67,7 @@ namespace MediaMonkey
             }
             catch
             {
-                if (mm != null)
-                {
-                    mm.Dispose();
-                }
+                Dispose();
                 return false;
             }
         }
@@ -79,14 +76,14 @@ namespace MediaMonkey
         {
             try
             {
-                if (mm != null)
+                if (IsRunning() && mm != null)
                 {
                     return mm.HasActiveSession();
                 }
             }
             catch
             {
-                mm.Dispose();
+                Dispose();
             }
 
             return false;
@@ -201,6 +198,10 @@ namespace MediaMonkey
                 {
                     Dispose();
                 }
+            }
+            else
+            {
+                CurrentTrack = null;
             }
         }
 

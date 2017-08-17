@@ -258,6 +258,7 @@ namespace PluginMediaMonkey
 
         internal override double Update()
         {
+            MediaMonkey.Update();
             return ReturnValue(Type);
         }
 
@@ -703,6 +704,10 @@ namespace PluginMediaMonkey
                         Rating = -1.0;
                         break;
 
+                    case 0:
+                        Rating = 0.0;
+                        break;
+
                     case 10:
                         Rating = 0.5;
                         break;
@@ -802,33 +807,30 @@ namespace PluginMediaMonkey
                 }
             }
 
-            internal override double Update()
+        internal override double Update()
+        {
+            if (ParentMeasure != null)
             {
-                MediaMonkey.Update();
-
-                if (ParentMeasure != null)
-                {
-                    return ParentMeasure.ReturnValue(Type);
-                }
-
-                return 0.0;
+                return ParentMeasure.ReturnValue(Type);
             }
+            return 0.0;
+        }
 
             internal override string GetString()
             {
                 if (ParentMeasure != null)
-                {
-                    return ParentMeasure.ReturnString(Type);
-                }
+                    {
+                        return ParentMeasure.ReturnString(Type);
+                    }
                 return "";
             }
 
             internal override void ExecuteBang(string args)
             {
                 if (ParentMeasure != null)
-                {
-                    ParentMeasure.ExecuteBang(args);
-                }
+                    {
+                        ParentMeasure.ExecuteBang(args);
+                    }
             }
         }
 
@@ -844,7 +846,7 @@ namespace PluginMediaMonkey
             Rainmeter.API api = new Rainmeter.API(rm);
 
             string mname = api.GetMeasureName();
-            API.Log(API.LogType.Debug, "Mediamonkey.dll: Initialiying Plugin for Measure" + mname);
+            API.Log(API.LogType.Debug, "Mediamonkey.dll: Initializing Plugin for Measure " + mname);
 
             string mmVersion = api.ReadString("MMVersion", "");
             string PlayerName = api.ReadString("PlayerName", "",false);
