@@ -62,11 +62,27 @@ namespace MediaMonkey
 
             try
             {
-                mm = new MediaMonkeyNet.MediaMonkeyNet();
+                LogMessageToFile("tryinitnewMM");
+                // mm = new MediaMonkeyNet.MediaMonkeyNet();
+                mm = new MediaMonkeyNet.MediaMonkeyNet("http://localhost:9222", false);
+                LogMessageToFile("tryinitnewstep2");
+
+
+                List<RemoteSessionsResponse> sessions = mm.GetAvailableSessions();
+                if(sessions.Count == 0)
+                {
+                    mm = null;
+                    return false;
+                }
+                mm.SetActiveSession(sessions.FirstOrDefault().webSocketDebuggerUrl);
+
+                LogMessageToFile("aftertryinitnewMM");
                 return IsInitialized();
             }
             catch
             {
+                LogMessageToFile("catchinitnewMM");
+                mm = null;
                 Dispose();
                 return false;
             }
@@ -78,6 +94,8 @@ namespace MediaMonkey
             {
                 if (IsRunning() && mm != null)
                 {
+                    LogMessageToFile("intializedchecksession");
+
                     return mm.HasActiveSession();
                 }
             }
@@ -175,28 +193,37 @@ namespace MediaMonkey
             {
                 try
                 {
-                    mm.Dispose();
+                    if (IsRunning())
+                    {
+                        LogMessageToFile("beforedispose");
+                        mm.Dispose();
+                        LogMessageToFile("afterdispose");
+                    }
                 }
                 catch
                 {
                 }
-
                 mm = null;
             }
         }
 
         public void Update()
         {
+            LogMessageToFile("startupdate");
             // Attempt to update the currently playing track
             if (IsInitialized() || Initialize())
             {
                 try
                 {
+                    LogMessageToFile("trygetcurrenttrack");
                     CurrentTrack = mm.GetCurrentTrack();
+                    LogMessageToFile("aftergetcurrenttrack");
                 }
                 catch (Exception)
                 {
+                    LogMessageToFile("catchUpdateDispose");
                     Dispose();
+                    LogMessageToFile("aftercatchUpdateDispose");
                 }
             }
             else
@@ -803,6 +830,30 @@ namespace MediaMonkey
                     Volume = 0;
                 }
                 mm.SetVolume((double)Volume / 100.0);
+            }
+        }
+
+
+        public string GetTempPath()
+        {
+            string path = System.Environment.GetEnvironmentVariable("TEMP");
+            if (!path.EndsWith("\\")) path += "\\";
+            return path;
+        }
+
+        public void LogMessageToFile(string msg)
+        {
+            System.IO.StreamWriter sw = System.IO.File.AppendText(
+                GetTempPath() + "rainmeterdebug.txt");
+            try
+            {
+                string logLine = System.String.Format(
+                    "{0:G}: {1}.", System.DateTime.Now, msg);
+                sw.WriteLine(logLine);
+            }
+            finally
+            {
+                sw.Close();
             }
         }
     }

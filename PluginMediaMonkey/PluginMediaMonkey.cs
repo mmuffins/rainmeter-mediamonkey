@@ -51,18 +51,14 @@ namespace PluginMediaMonkey
         internal MeasureType Type = MeasureType.Title;
         internal IMediaMonkey MediaMonkey;
 
-        /*internal Measure(IMediaMonkey MediaMonkey)
-        {
-            this.MediaMonkey = MediaMonkey;
-        }
-        */
-
         internal virtual void Dispose()
         {
         }
 
         internal virtual void Reload(Rainmeter.API rm, ref double maxValue)
         {
+            API.Log(API.LogType.Debug, "DELME: measurereload");
+
             string type = rm.ReadString("PlayerType", "", false);
 
             switch (type.ToLowerInvariant())
@@ -252,12 +248,12 @@ namespace PluginMediaMonkey
             {
                 API.Log(API.LogType.Error, "MediaMonkey.dll: Invalid parameter for DisableLeadingZero =" + DisableLeadingZeroString);
             }
-
-
         }
 
         internal override double Update()
         {
+            API.Log(API.LogType.Error, "DELME: parentupdate " + Type);
+
             MediaMonkey.Update();
             return ReturnValue(Type);
         }
@@ -321,7 +317,7 @@ namespace PluginMediaMonkey
                     break;
             }
             return 0.0;
-        }
+        } 
 
 #if DLLEXPORT_GETSTRING
         internal override string GetString()
@@ -780,6 +776,8 @@ namespace PluginMediaMonkey
 
             internal override void Reload(Rainmeter.API api, ref double maxValue)
             {
+                API.Log(API.LogType.Debug, "DELME: childreloadstart");
+
                 Name = api.GetMeasureName();
                 API.Log(API.LogType.Debug, "Mediamonkey.dll: Reloading ChildMeasure=" + Name);
 
@@ -805,12 +803,14 @@ namespace PluginMediaMonkey
                 {
                     API.Log(API.LogType.Error, "Mediamonkey.dll: PlayerName=" + parentName + " not valid");
                 }
+                API.Log(API.LogType.Debug, "DELME: childreloadend");
             }
 
         internal override double Update()
         {
             if (ParentMeasure != null)
             {
+                API.Log(API.LogType.Debug, "DELME: childreload " + Type);
                 return ParentMeasure.ReturnValue(Type);
             }
             return 0.0;
@@ -820,7 +820,7 @@ namespace PluginMediaMonkey
             {
                 if (ParentMeasure != null)
                     {
-                        return ParentMeasure.ReturnString(Type);
+                    return ParentMeasure.ReturnString(Type);
                     }
                 return "";
             }
