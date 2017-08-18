@@ -22,10 +22,11 @@ namespace MediaMonkey
         void SetShuffle(int Shuffle);
         void SetRepeat(int Repeat);
         void SetVolume(int Volume);
-        void Update();
+        void UpdateTrack();
+        void UpdatePlayer();
         void Dispose();
 
-        bool Initialize();
+        // bool Initialize();
         bool IsInitialized();
         bool IsRunning();
         bool IsPlaying();

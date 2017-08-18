@@ -57,8 +57,6 @@ namespace PluginMediaMonkey
 
         internal virtual void Reload(Rainmeter.API rm, ref double maxValue)
         {
-            API.Log(API.LogType.Debug, "DELME: measurereload");
-
             string type = rm.ReadString("PlayerType", "", false);
 
             switch (type.ToLowerInvariant())
@@ -252,9 +250,8 @@ namespace PluginMediaMonkey
 
         internal override double Update()
         {
-            API.Log(API.LogType.Error, "DELME: parentupdate " + Type);
-
-            MediaMonkey.Update();
+            MediaMonkey.UpdateTrack();
+            MediaMonkey.UpdatePlayer();
             return ReturnValue(Type);
         }
 
@@ -776,8 +773,6 @@ namespace PluginMediaMonkey
 
             internal override void Reload(Rainmeter.API api, ref double maxValue)
             {
-                API.Log(API.LogType.Debug, "DELME: childreloadstart");
-
                 Name = api.GetMeasureName();
                 API.Log(API.LogType.Debug, "Mediamonkey.dll: Reloading ChildMeasure=" + Name);
 
@@ -803,14 +798,13 @@ namespace PluginMediaMonkey
                 {
                     API.Log(API.LogType.Error, "Mediamonkey.dll: PlayerName=" + parentName + " not valid");
                 }
-                API.Log(API.LogType.Debug, "DELME: childreloadend");
             }
 
         internal override double Update()
         {
             if (ParentMeasure != null)
             {
-                API.Log(API.LogType.Debug, "DELME: childreload " + Type);
+                // API.Log(API.LogType.Debug, "Debug: childreload " + Type);
                 return ParentMeasure.ReturnValue(Type);
             }
             return 0.0;
