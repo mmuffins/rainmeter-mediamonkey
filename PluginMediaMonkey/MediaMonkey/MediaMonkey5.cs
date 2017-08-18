@@ -20,9 +20,8 @@ namespace MediaMonkey
         private const int CooldownDelay = 3000;
         private bool OnCooldown;
 
-        private Dictionary<string, bool> AsyncQueue;
-        private List<Cover> CoverList;
-        private string _Cover;
+        private List<Cover> AlbumArt;
+        private string _Cover = "";
         private Player Player;
         private Track CurrentTrack;
         private Task RefreshPlayerTask;
@@ -37,36 +36,23 @@ namespace MediaMonkey
 
         public MediaMonkey5()
         {
-            AsyncQueue = new Dictionary<string, bool>();
-            InitAsyncQueue();
-
             MediaMonkeyPath = GetExecutablePath();
         }
 
         public MediaMonkey5(string ExecutablePath)
         {
-            AsyncQueue = new Dictionary<string, bool>();
-            InitAsyncQueue();
-
             if (!string.IsNullOrWhiteSpace(ExecutablePath))
             {
                 MediaMonkeyPath = ExecutablePath;
             }
-
         }
 
-        private void InitAsyncQueue()
-        {
-            AsyncQueue.Add("UpdateCover", false);
-            AsyncQueue.Add("InitializeAsync", false);
-        }
 
         public async void Initialize()
         {
             LogMessageToFile("Initialize");
 
-
-            if (AsyncQueue["InitializeAsync"] || OnCooldown || !IsRunning())
+            if (OnCooldown || !IsRunning())
             {
                 LogMessageToFile("Initialize blocking");
                 return;
@@ -114,6 +100,7 @@ namespace MediaMonkey
             }
             catch
             {
+                mm = null;
                 Dispose();
             }
         }
@@ -240,9 +227,8 @@ namespace MediaMonkey
         {
             CurrentTrack = null;
             Player = null;
-            CoverList = null;
+            AlbumArt = null;
             _Cover = "";
-            MediaMonkeyProcessId = 0;
 
 
             if (mm != null)
@@ -466,7 +452,7 @@ namespace MediaMonkey
         }
 
 
-        public async void UpdateCover()
+        public async void UpdateAlbumArt()
         {
             // Returns path of the album art cover
             // Currently, art stored in tags is not supported
@@ -489,8 +475,29 @@ namespace MediaMonkey
             {
                 try
                 {
-                    RefreshCoverTask = UpdateCoverAsync();
+                    RefreshCoverTask = UpdateAlbumArtrAsync();
                     await RefreshCoverTask;
+
+                    var filteredCoverList = AlbumArt.Where(x => x.CoverStorage == 1).ToList();
+
+                    if (filteredCoverList.Count > 0)
+                    {
+
+                        var covers = filteredCoverList.Where(x => x.CoverType == 3).ToList();
+                        if (covers.Count > 0)
+                        {
+                            _Cover = covers.FirstOrDefault().PicturePath;
+                        }
+                        else
+                        {
+                            // couldn't find art with the correct tag, use the first one
+                            _Cover = filteredCoverList.FirstOrDefault().PicturePath;
+                        }
+                    }
+                    else
+                    {
+                        _Cover = "";
+                    }
                 }
                 catch
                 {
@@ -499,29 +506,11 @@ namespace MediaMonkey
             }
         }
 
-        async private Task UpdateCoverAsync()
+        async private Task UpdateAlbumArtrAsync()
         {
             try
             {
-                _Cover = "";
-                await Task.Factory.StartNew(() => CoverList = mm.GetCoverList());
-
-                var filteredCoverList = CoverList.Where(x => x.CoverStorage == 1).ToList();
-
-                if (filteredCoverList.Count > 0)
-                {
-
-                    var covers = filteredCoverList.Where(x => x.CoverType == 3).ToList();
-                    if (covers.Count > 0)
-                    {
-                        _Cover = covers.FirstOrDefault().PicturePath;
-                    }
-                    else
-                    {
-                        // couldn't find art with the correct tag, use the first one
-                        _Cover = filteredCoverList.FirstOrDefault().PicturePath;
-                    }
-                }
+                await Task.Factory.StartNew(() => AlbumArt = mm.GetCoverList());
             }
             catch
             {
@@ -531,7 +520,6 @@ namespace MediaMonkey
 
         public string Cover()
         {
-            // UpdateCover();
             return _Cover;
         }
 

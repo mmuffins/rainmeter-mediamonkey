@@ -193,6 +193,12 @@ namespace MediaMonkey
         {
             // Not implemented for MM4
         }
+
+        public void UpdateAlbumArt()
+        {
+            // Not implemented for MM4
+        }
+
         private string NormalizePath(string path)
         {
             return Path.GetFullPath(new Uri(path).LocalPath)

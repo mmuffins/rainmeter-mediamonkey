@@ -210,6 +210,7 @@ namespace PluginMediaMonkey
         internal string Name;
         internal bool DisableLeadingZero = false;
         internal IntPtr Skin;
+        internal bool EnableArtUpdate = false; // Updating albumart can be expensive, only update if needed
 
 
         internal ParentMeasure(IMediaMonkey MediaMonkey)
@@ -252,6 +253,8 @@ namespace PluginMediaMonkey
         {
             MediaMonkey.UpdateTrack();
             MediaMonkey.UpdatePlayer();
+            if (EnableArtUpdate) {MediaMonkey.UpdateAlbumArt();};
+            
             return ReturnValue(Type);
         }
 
@@ -342,6 +345,7 @@ namespace PluginMediaMonkey
                     return MediaMonkey.Conductor();
 
                 case MeasureType.Cover:
+                    EnableArtUpdate = true;
                     return MediaMonkey.Cover();
 
                 case MeasureType.Custom1:
