@@ -50,11 +50,8 @@ namespace MediaMonkey
 
         public async void Initialize()
         {
-            LogMessageToFile("Initialize");
-
             if (OnCooldown || !IsRunning())
             {
-                LogMessageToFile("Initialize blocking");
                 return;
             }
 
@@ -107,13 +104,10 @@ namespace MediaMonkey
 
         public bool IsInitialized()
         {
-            LogMessageToFile("IsInitialized");
-
             if (!IsRunning())
             {
                 // Currently initializing or not running
                 // try again later
-                LogMessageToFile("IsInitialized False");
                 return false;
             }
 
@@ -123,12 +117,10 @@ namespace MediaMonkey
             {
                 try
                 {
-                    LogMessageToFile("tryHasActiveSession");
                     activeSession = mm.HasActiveSession();
                 }
                 catch
                 {
-                    LogMessageToFile("IsInitialized catch");
                     Dispose();
                     return false;
                 }
@@ -136,11 +128,8 @@ namespace MediaMonkey
 
             if (!activeSession)
             {
-                LogMessageToFile("hasnoactivesession, dispose");
                 Dispose();
-                LogMessageToFile("hasnoactivesession, afterdispose");
             }
-            LogMessageToFile("IsInitialized return " + activeSession);
 
             return activeSession;
         }
@@ -237,7 +226,6 @@ namespace MediaMonkey
                 {
                     if (IsRunning())
                     {
-                        LogMessageToFile("disposemm");
                         if (mm != null)
                         {
                             mm.Dispose();
@@ -256,8 +244,6 @@ namespace MediaMonkey
         {
             // Attempt to update the currently playing track
 
-            LogMessageToFile("UpdateTrack");
-
             if (!IsInitialized())
             {
                 Initialize();
@@ -272,7 +258,6 @@ namespace MediaMonkey
             {
                 try
                 {
-                    LogMessageToFile("start awaitrefreshtracktask");
                     RefreshTrackTask = UpdateTrackAsync();
                     await RefreshTrackTask;
                 }
@@ -285,7 +270,6 @@ namespace MediaMonkey
 
         async private Task UpdateTrackAsync()
         {
-            LogMessageToFile("UpdateTrackAsync");
             try
             {
                 await Task.Factory.StartNew(() => CurrentTrack = mm.GetCurrentTrack());
@@ -1071,14 +1055,14 @@ namespace MediaMonkey
         }
 
 
-        public string GetTempPath()
+        private string GetTempPath()
         {
             string path = System.Environment.GetEnvironmentVariable("TEMP");
             if (!path.EndsWith("\\")) path += "\\";
             return path;
         }
 
-        public void LogMessageToFile(string msg)
+        private void LogMessageToFile(string msg)
         {
             try
             {
