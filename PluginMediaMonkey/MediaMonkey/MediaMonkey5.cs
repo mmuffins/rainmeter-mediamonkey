@@ -122,7 +122,7 @@ namespace MediaMonkey
         {
             LogMessageToFile("IsInitialized");
 
-            if (AsyncQueue["InitializeAsync"] || !IsRunning())
+            if (!IsRunning())
             {
                 // Currently initializing or not running
                 // try again later
@@ -130,22 +130,32 @@ namespace MediaMonkey
                 return false;
             }
 
-            try
+            bool activeSession = false;
+
+            if (mm != null)
             {
-                if (mm != null)
+                try
                 {
-                    var activeSession = mm.HasActiveSession();
-                    LogMessageToFile("IsInitialized " + activeSession);
-                    return activeSession;
+                    LogMessageToFile("tryHasActiveSession");
+                    activeSession = mm.HasActiveSession();
+                }
+                catch
+                {
+                    LogMessageToFile("IsInitialized catch");
+                    Dispose();
+                    return false;
                 }
             }
-            catch
-            {
-                Dispose();
-            }
 
-            LogMessageToFile("IsInitialized False");
-            return false;
+            if (!activeSession)
+            {
+                LogMessageToFile("hasnoactivesession, dispose");
+                Dispose();
+                LogMessageToFile("hasnoactivesession, afterdispose");
+            }
+            LogMessageToFile("IsInitialized return " + activeSession);
+
+            return activeSession;
         }
 
         public bool IsRunning()
@@ -188,7 +198,7 @@ namespace MediaMonkey
                 }
                 // Couldn't find the correct process, dispose of the mm object
                 MediaMonkeyProcessId = 0;
-                Dispose();
+                //Dispose();
             }
             else
             {
@@ -206,14 +216,14 @@ namespace MediaMonkey
                     else
                     {
                         MediaMonkeyProcessId = 0;
-                        Dispose();
+                        //Dispose();
                     }
 
                 }
                 catch (Exception)
                 {
                     MediaMonkeyProcessId = 0;
-                    Dispose();
+                    //Dispose();
                 }
             }
             return false;
@@ -232,6 +242,8 @@ namespace MediaMonkey
             Player = null;
             CoverList = null;
             _Cover = "";
+            MediaMonkeyProcessId = 0;
+
 
             if (mm != null)
             {
@@ -298,59 +310,6 @@ namespace MediaMonkey
             return;
         }
 
-        //private void UpdateTrackAsync()
-        //{
-        //    AsyncQueue["UpdateTrack"] = true;
-
-        //    try
-        //    {
-        //        CurrentTrack = mm.GetCurrentTrack();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Dispose();
-        //    }
-        //    finally
-        //    {
-        //        AsyncQueue["UpdateTrack"] = false;
-        //    }
-        //}
-
-        //public async void UpdateTrack()
-        //{
-        //    // Attempt to update the currently playing track
-
-        //    if (AsyncQueue["UpdateTrack"])
-        //    {
-        //        return;
-        //    }
-
-        //    if (!IsInitialized())
-        //    {
-        //        Initialize();
-        //        return;
-        //    }
-
-        //    await Task.Run(() => UpdateTrackAsync());
-        //}
-
-
-        //public async void UpdatePlayer()
-        //{
-        //    if (AsyncQueue["UpdatePlayer"])
-        //    {
-        //        return;
-        //    }
-
-        //    if (!IsInitialized())
-        //    {
-        //        Initialize();
-        //        return;
-        //    }
-
-        //    await Player.Refresh();
-        //}
-
         public async void UpdatePlayer()
         {
             if (!IsInitialized())
@@ -383,7 +342,7 @@ namespace MediaMonkey
             {
                 await Player.Refresh();
             }
-            catch (Exception)
+            catch
             {
                 Dispose();
             }
@@ -422,24 +381,6 @@ namespace MediaMonkey
             }
             return false;
         }
-
-        //public void UpdateIsPlaying()
-        //{
-        //    AsyncQueue["IsPlaying"] = true;
-
-        //    try
-        //    {
-        //        _IsPlaying = mm.IsPlaying;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Dispose();
-        //    }
-        //    finally
-        //    {
-        //        AsyncQueue["IsPlaying"] = false;
-        //    }
-        //}
 
         public bool IsPaused()
         {
@@ -514,25 +455,6 @@ namespace MediaMonkey
             }
             return false;
         }
-
-        //public void UpdateIsShuffle()
-        //{
-        //    AsyncQueue["IsShuffle"] = true;
-
-        //    try
-        //    {
-        //        _IsShuffle = mm.IsShuffle;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Dispose();
-        //    }
-        //    finally
-        //    {
-        //        AsyncQueue["IsShuffle"] = false;
-        //    }
-
-        //}
 
         public string Genre()
         {
@@ -998,12 +920,11 @@ namespace MediaMonkey
                     Process mmProc = Process.GetProcessById(MediaMonkeyProcessId);
                     mmProc.CloseMainWindow();
                 }
-                catch (Exception)
+                catch
                 {
                 }
                 finally
                 {
-                    MediaMonkeyProcessId = 0;
                     Dispose();
                 }
             }
