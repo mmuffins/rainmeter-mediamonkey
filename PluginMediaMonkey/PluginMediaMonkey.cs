@@ -53,6 +53,7 @@ namespace PluginMediaMonkey
 
         internal virtual void Dispose()
         {
+            MediaMonkey.Dispose();
         }
 
         internal virtual void Reload(Rainmeter.API rm, ref double maxValue)
