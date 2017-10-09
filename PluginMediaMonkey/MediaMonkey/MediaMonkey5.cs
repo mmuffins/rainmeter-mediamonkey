@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using MediaMonkeyNet;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MediaMonkey
 {
@@ -25,9 +26,13 @@ namespace MediaMonkey
         private Player Player;
         private Track CurrentTrack;
         private Task RefreshPlayerTask;
+        private CancellationTokenSource RefreshPlayerCts;
         private Task RefreshTrackTask;
+        private CancellationTokenSource RefreshTrackCts;
         private Task RefreshCoverTask;
+        private CancellationTokenSource RefreshCoverCts;
         private Task InitializeTask;
+        private CancellationTokenSource InitializeCts;
 
         int MediaMonkeyProcessId;
         string MediaMonkeyPath;
@@ -37,7 +42,7 @@ namespace MediaMonkey
         public MediaMonkey5()
         {
             MediaMonkeyPath = GetExecutablePath();
-        }
+    }
 
         public MediaMonkey5(string ExecutablePath)
         {
@@ -50,8 +55,10 @@ namespace MediaMonkey
 
         public async void Initialize()
         {
+            LogMessageToFile("init");
             if (OnCooldown || !IsRunning())
             {
+                LogMessageToFile("init on cooldown");
                 return;
             }
 
@@ -59,47 +66,61 @@ namespace MediaMonkey
             // but trying to initialize the api at high rates
             // can cause issues for MM
 
-            OnCooldown = true;
 
-            System.Threading.Timer cooldown = null;
-            cooldown = new System.Threading.Timer((obj) =>
-            {
-                OnCooldown = false;
-                cooldown.Dispose();
-            },
-            null, CooldownDelay, System.Threading.Timeout.Infinite);
+            OnCooldown = false;
+            //OnCooldown = true;
+
+            //System.Threading.Timer cooldown = null;
+            //cooldown = new System.Threading.Timer((obj) =>
+            //{
+            //    OnCooldown = false;
+            //    cooldown.Dispose();
+            //},
+            //null, CooldownDelay, System.Threading.Timeout.Infinite);
+            if (InitializeTask != null) LogMessageToFile("update inittaskstatus:" + InitializeTask.Status.ToString());
 
             if (InitializeTask == null
                 || InitializeTask.Status.Equals(TaskStatus.Canceled)
                 || InitializeTask.Status.Equals(TaskStatus.Faulted)
                 || InitializeTask.Status.Equals(TaskStatus.RanToCompletion)
+                || InitializeTask.Status.Equals(TaskStatus.WaitingToRun)
                 )
             {
                 try
                 {
+                    LogMessageToFile("init task start");
                     InitializeTask = InitializeAsync();
+                    LogMessageToFile("init task await");
                     await InitializeTask;
+                    LogMessageToFile("init task done");
+
                 }
-                catch
+                catch (Exception ex)
                 {
+                    LogMessageToFile("init catch ");
+                    LogMessageToFile(ex.Message);
                     Dispose();
                 }
             }
-
+            LogMessageToFile("init done");
         }
 
         async private Task InitializeAsync()
         {
             try
             {
-                await Task.Factory.StartNew(() => mm = new MediaMonkeyNet.MediaMonkeyNet());
-                await Task.Factory.StartNew(() => Player = new Player(mm));
+                InitializeCts = new CancellationTokenSource();
+                await Task.Factory.StartNew(() => mm = new MediaMonkeyNet.MediaMonkeyNet(), InitializeCts.Token);
+                await Task.Factory.StartNew(() => Player = new Player(mm), InitializeCts.Token);
             }
-            catch
+            catch (Exception ex)
             {
+                LogMessageToFile("init catch 2");
+                LogMessageToFile(ex.Message);
                 mm = null;
                 Dispose();
             }
+
         }
 
         public bool IsInitialized()
@@ -214,11 +235,15 @@ namespace MediaMonkey
 
         public void Dispose()
         {
+            LogMessageToFile("startdispose");
+            if (InitializeCts != null) InitializeCts.Cancel();
+            if (RefreshPlayerCts != null) RefreshPlayerCts.Cancel();
+            if (RefreshTrackCts != null) RefreshTrackCts.Cancel();
+            if (RefreshCoverCts != null) RefreshCoverCts.Cancel();
             CurrentTrack = null;
             Player = null;
             AlbumArt = null;
             _Cover = "";
-
 
             if (mm != null)
             {
@@ -230,40 +255,89 @@ namespace MediaMonkey
                         {
                             mm.Dispose();
                         }
-                    }
+                    } 
+
                 }
                 catch
                 {
                 }
                 mm = null;
             }
-
+            LogMessageToFile("enddispose");
         }
 
-        public async void UpdateTrack()
+        public async void Update(bool updateAlbumArt)
         {
-            // Attempt to update the currently playing track
+            // UpdateAlbumArt is by far the most expensive operation,
+            // only update if needed
 
+            LogMessageToFile("update start");
             if (!IsInitialized())
             {
+                LogMessageToFile("update noinit");
                 Initialize();
                 return;
             }
 
+            try
+            {
+                await UpdateTrack();
+                await UpdatePlayer();
+                LogMessageToFile("update cover start");
+                if(updateAlbumArt) await UpdateAlbumArt();
+                LogMessageToFile("update cover done");
+            }
+            catch (Exception ex)
+            {
+                LogMessageToFile("update catch");
+                LogMessageToFile(ex.Message);
+                LogMessageToFile(ex.InnerException.Message);
+                Dispose();
+            }
+            LogMessageToFile("update done");
+        }
+
+        async private Task UpdateAsync()
+        {
+            try
+            {
+                RefreshPlayerCts = new CancellationTokenSource();
+                await Task.Factory.StartNew(() => CurrentTrack = mm.GetCurrentTrack(), RefreshTrackCts.Token);
+            }
+            catch
+            {
+                LogMessageToFile("update catch 2");
+                throw;
+            }
+        }
+
+        public async Task UpdateTrack()
+        {
+            // Attempt to update the currently playing track
+            LogMessageToFile("updatetrack start");
+
+            if (RefreshTrackTask != null) LogMessageToFile("updatetrack taskstatus:" + RefreshTrackTask.Status.ToString());
+            
             if (RefreshTrackTask == null
                 || RefreshTrackTask.Status.Equals(TaskStatus.Canceled)
                 || RefreshTrackTask.Status.Equals(TaskStatus.Faulted)
                 || RefreshTrackTask.Status.Equals(TaskStatus.RanToCompletion)
+                || RefreshTrackTask.Status.Equals(TaskStatus.WaitingForActivation)
+                || RefreshTrackTask.Status.Equals(TaskStatus.WaitingToRun)
                 )
             {
                 try
                 {
+                    LogMessageToFile("update trackrefresh");
                     RefreshTrackTask = UpdateTrackAsync();
+                    LogMessageToFile("update trackrefresh await");
                     await RefreshTrackTask;
+                    //LogMessageToFile("update trackrefresh done");
+                    LogMessageToFile("update tracktaskstatus:" + RefreshTrackTask.Status.ToString());
                 }
                 catch
                 {
-                    Dispose();
+                    throw;
                 }
             }
         }
@@ -272,51 +346,125 @@ namespace MediaMonkey
         {
             try
             {
-                await Task.Factory.StartNew(() => CurrentTrack = mm.GetCurrentTrack());
+                RefreshTrackCts = new CancellationTokenSource();
+                await Task.Factory.StartNew(() => CurrentTrack = mm.GetCurrentTrack(), RefreshTrackCts.Token);
             }
             catch
             {
+                LogMessageToFile("updatetrack catch 2");
+                throw;
             }
             return;
         }
 
-        public async void UpdatePlayer()
+        public async Task UpdatePlayer()
         {
-            if (!IsInitialized())
-            {
-                Initialize();
-                return;
-            }
+            LogMessageToFile("updatePlayer start");
+
+            if (RefreshPlayerTask != null) LogMessageToFile("updatePlayer taskstatus:" + RefreshPlayerTask.Status.ToString());
 
             if (RefreshPlayerTask == null
                 || RefreshPlayerTask.Status.Equals(TaskStatus.Canceled)
                 || RefreshPlayerTask.Status.Equals(TaskStatus.Faulted)
-                || RefreshPlayerTask.Status.Equals(TaskStatus.RanToCompletion))
+                || RefreshPlayerTask.Status.Equals(TaskStatus.RanToCompletion)
+                || RefreshPlayerTask.Status.Equals(TaskStatus.WaitingForActivation)
+                || RefreshPlayerTask.Status.Equals(TaskStatus.WaitingToRun))
             {
 
                 try
                 {
-                    RefreshPlayerTask = Player.Refresh();
+                    LogMessageToFile("update playerrefresh");
+                    RefreshPlayerTask = UpdatePlayerAsync();
+                    LogMessageToFile("update playerrefresh await");
                     await RefreshPlayerTask;
+                    LogMessageToFile("update playertaskstatus:" + RefreshPlayerTask.Status.ToString());
                 }
                 catch
                 {
-                    Dispose();
+                    throw;
                 }
             }
         }
 
-        public async void UpdatePlayerAsync()
+        async private Task UpdatePlayerAsync()
         {
             try
             {
-                await Player.Refresh();
+                RefreshPlayerCts = new CancellationTokenSource();
+                await Task.Factory.StartNew(() => Player.Refresh(), RefreshPlayerCts.Token);
             }
             catch
             {
-                Dispose();
+                LogMessageToFile("updateplayer catch 2");
+                throw;
+            }
+            return;
+        }
+
+        public async Task UpdateAlbumArt()
+        {
+            // Returns path of the album art cover
+            // Currently, art stored in tags is not supported
+            // albumart tagged as 'Cover (front)' is preferred
+            // If multiple covers are found, the higher sorted one
+            // gets precedence
+            // If no correctly tagged art ist found, the hightest sorted
+            // gets precedence
+
+            if (RefreshCoverTask == null
+                || RefreshCoverTask.Status.Equals(TaskStatus.Canceled)
+                || RefreshCoverTask.Status.Equals(TaskStatus.Faulted)
+                || RefreshCoverTask.Status.Equals(TaskStatus.RanToCompletion)
+                || RefreshCoverTask.Status.Equals(TaskStatus.WaitingForActivation)
+                || RefreshCoverTask.Status.Equals(TaskStatus.WaitingToRun)
+                )
+            {
+                try
+                {
+                    RefreshCoverTask = UpdateAlbumArtrAsync();
+                    await RefreshCoverTask;
+
+                    var filteredCoverList = AlbumArt.Where(x => x.CoverStorage == 1).ToList();
+
+                    if (filteredCoverList.Count > 0)
+                    {
+
+                        var covers = filteredCoverList.Where(x => x.CoverType == 3).ToList();
+                        if (covers.Count > 0)
+                        {
+                            _Cover = covers.FirstOrDefault().PicturePath;
+                        }
+                        else
+                        {
+                            // couldn't find art with the correct tag, use the first one
+                            _Cover = filteredCoverList.FirstOrDefault().PicturePath;
+                        }
+                    }
+                    else
+                    {
+                        _Cover = "";
+                    }
+                }
+                catch
+                {
+                    throw;
+                }
             }
         }
+
+        async private Task UpdateAlbumArtrAsync()
+        {
+            try
+            {
+                RefreshCoverCts = new CancellationTokenSource();
+                await Task.Factory.StartNew(() => AlbumArt = mm.GetCoverList(), RefreshCoverCts.Token);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
 
         //Properties
 
@@ -329,7 +477,9 @@ namespace MediaMonkey
         {
             if (CurrentTrack != null)
             {
-                return CurrentTrack.Title;
+                string debugTitle = CurrentTrack.Title;
+                LogMessageToFile(debugTitle);
+                return debugTitle;
             }
             return "";
         }
@@ -433,73 +583,6 @@ namespace MediaMonkey
                 return CurrentTrack.Genre;
             }
             return "";
-        }
-
-
-        public async void UpdateAlbumArt()
-        {
-            // Returns path of the album art cover
-            // Currently, art stored in tags is not supported
-            // albumart tagged as 'Cover (front)' is preferred
-            // If multiple covers are found, the higher sorted one
-            // gets precedence
-            // If no correctly tagged art ist found, the hightest sorted
-            // gets precedence
-            if (!IsInitialized())
-            {
-                Initialize();
-                return;
-            }
-
-            if (RefreshCoverTask == null
-                || RefreshCoverTask.Status.Equals(TaskStatus.Canceled)
-                || RefreshCoverTask.Status.Equals(TaskStatus.Faulted)
-                || RefreshCoverTask.Status.Equals(TaskStatus.RanToCompletion)
-                )
-            {
-                try
-                {
-                    RefreshCoverTask = UpdateAlbumArtrAsync();
-                    await RefreshCoverTask;
-
-                    var filteredCoverList = AlbumArt.Where(x => x.CoverStorage == 1).ToList();
-
-                    if (filteredCoverList.Count > 0)
-                    {
-
-                        var covers = filteredCoverList.Where(x => x.CoverType == 3).ToList();
-                        if (covers.Count > 0)
-                        {
-                            _Cover = covers.FirstOrDefault().PicturePath;
-                        }
-                        else
-                        {
-                            // couldn't find art with the correct tag, use the first one
-                            _Cover = filteredCoverList.FirstOrDefault().PicturePath;
-                        }
-                    }
-                    else
-                    {
-                        _Cover = "";
-                    }
-                }
-                catch
-                {
-                    Dispose();
-                }
-            }
-        }
-
-        async private Task UpdateAlbumArtrAsync()
-        {
-            try
-            {
-                await Task.Factory.StartNew(() => AlbumArt = mm.GetCoverList());
-            }
-            catch
-            {
-                Dispose();
-            }
         }
 
         public string Cover()

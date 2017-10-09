@@ -184,20 +184,26 @@ namespace MediaMonkey
             DisposeDate = DateTime.Now;
         }
 
-        public void UpdateTrack()
+        public void Update(bool updateAlbumArt)
         {
             // Not implemented for MM4
         }
 
-        public void UpdatePlayer()
-        {
-            // Not implemented for MM4
-        }
 
-        public void UpdateAlbumArt()
-        {
-            // Not implemented for MM4
-        }
+        //public void UpdateTrack()
+        //{
+        //    // Not implemented for MM4
+        //}
+
+        //public void UpdatePlayer()
+        //{
+        //    // Not implemented for MM4
+        //}
+
+        //public void UpdateAlbumArt()
+        //{
+        //    // Not implemented for MM4
+        //}
 
         private string NormalizePath(string path)
         {

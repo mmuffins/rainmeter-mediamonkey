@@ -251,10 +251,7 @@ namespace PluginMediaMonkey
 
         internal override double Update()
         {
-            MediaMonkey.UpdateTrack();
-            MediaMonkey.UpdatePlayer();
-            if (EnableArtUpdate) {MediaMonkey.UpdateAlbumArt();};
-            
+            MediaMonkey.Update(EnableArtUpdate);
             return ReturnValue(Type);
         }
 
