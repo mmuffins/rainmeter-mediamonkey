@@ -55,17 +55,14 @@ namespace MediaMonkey
 
         public async void Initialize()
         {
-            LogMessageToFile("init");
             if (OnCooldown || !IsRunning())
             {
-                LogMessageToFile("init on cooldown or mm not running");
                 return;
             }
 
             // Polling at high rates is generally OK
             // but trying to initialize the api at high rates
             // can cause issues for MM
-
 
             OnCooldown = false;
             //OnCooldown = true;
@@ -77,7 +74,6 @@ namespace MediaMonkey
             //    cooldown.Dispose();
             //},
             //null, CooldownDelay, System.Threading.Timeout.Infinite);
-            if (InitializeTask != null) LogMessageToFile("update inittaskstatus:" + InitializeTask.Status.ToString());
 
             if (InitializeTask == null
                 || InitializeTask.Status.Equals(TaskStatus.Canceled)
@@ -88,21 +84,14 @@ namespace MediaMonkey
             {
                 try
                 {
-                    LogMessageToFile("init task start");
                     InitializeTask = InitializeAsync();
-                    LogMessageToFile("init task await");
                     await InitializeTask;
-                    LogMessageToFile("init task done");
-
                 }
                 catch (Exception ex)
                 {
-                    LogMessageToFile("init catch ");
-                    LogMessageToFile(ex.Message);
                     Dispose();
                 }
             }
-            LogMessageToFile("init done");
         }
 
         async private Task InitializeAsync()
@@ -115,8 +104,6 @@ namespace MediaMonkey
             }
             catch (Exception ex)
             {
-                LogMessageToFile("init catch 2");
-                LogMessageToFile(ex.Message);
                 mm = null;
                 Dispose();
             }
@@ -191,6 +178,7 @@ namespace MediaMonkey
                             // Nothing to do here but all exceptions
                             // MUST be handled to prevent crashing
                             // the host application
+                            return false;
                         }
                     }
                 }
@@ -233,7 +221,6 @@ namespace MediaMonkey
 
         public void Dispose()
         {
-            LogMessageToFile("startdispose");
             if (InitializeCts != null) InitializeCts.Cancel();
             if (RefreshPlayerCts != null) RefreshPlayerCts.Cancel();
             if (RefreshTrackCts != null) RefreshTrackCts.Cancel();
@@ -267,7 +254,6 @@ namespace MediaMonkey
                 catch { }
                 mm = null;
             }
-            LogMessageToFile("enddispose");
         }
 
         public async void Update(bool updateAlbumArt)
@@ -275,10 +261,8 @@ namespace MediaMonkey
             // UpdateAlbumArt is by far the most expensive operation,
             // only update if needed
 
-            LogMessageToFile("update start");
             if (!IsInitialized())
             {
-                LogMessageToFile("update noinit");
                 Initialize();
                 return;
             }
@@ -287,18 +271,12 @@ namespace MediaMonkey
             {
                 await UpdateTrack();
                 await UpdatePlayer();
-                LogMessageToFile("update cover start");
                 if(updateAlbumArt) await UpdateAlbumArt();
-                LogMessageToFile("update cover done");
             }
             catch (Exception ex)
             {
-                LogMessageToFile("update catch");
-                LogMessageToFile(ex.Message);
-                LogMessageToFile(ex.InnerException.Message);
                 Dispose();
             }
-            LogMessageToFile("update done");
         }
 
         async private Task UpdateAsync()
@@ -310,7 +288,6 @@ namespace MediaMonkey
             }
             catch
             {
-                LogMessageToFile("update catch 2");
                 throw;
             }
         }
@@ -318,9 +295,6 @@ namespace MediaMonkey
         public async Task UpdateTrack()
         {
             // Attempt to update the currently playing track
-            LogMessageToFile("updatetrack start");
-
-            if (RefreshTrackTask != null) LogMessageToFile("updatetrack taskstatus:" + RefreshTrackTask.Status.ToString());
             
             if (RefreshTrackTask == null
                 || RefreshTrackTask.Status.Equals(TaskStatus.Canceled)
@@ -332,12 +306,8 @@ namespace MediaMonkey
             {
                 try
                 {
-                    LogMessageToFile("update trackrefresh");
                     RefreshTrackTask = UpdateTrackAsync();
-                    LogMessageToFile("update trackrefresh await");
                     await RefreshTrackTask;
-                    //LogMessageToFile("update trackrefresh done");
-                    LogMessageToFile("update tracktaskstatus:" + RefreshTrackTask.Status.ToString());
                 }
                 catch
                 {
@@ -355,7 +325,6 @@ namespace MediaMonkey
             }
             catch
             {
-                LogMessageToFile("updatetrack catch 2");
                 throw;
             }
             return;
@@ -363,10 +332,6 @@ namespace MediaMonkey
 
         public async Task UpdatePlayer()
         {
-            LogMessageToFile("updatePlayer start");
-
-            if (RefreshPlayerTask != null) LogMessageToFile("updatePlayer taskstatus:" + RefreshPlayerTask.Status.ToString());
-
             if (RefreshPlayerTask == null
                 || RefreshPlayerTask.Status.Equals(TaskStatus.Canceled)
                 || RefreshPlayerTask.Status.Equals(TaskStatus.Faulted)
@@ -377,11 +342,8 @@ namespace MediaMonkey
 
                 try
                 {
-                    LogMessageToFile("update playerrefresh");
                     RefreshPlayerTask = UpdatePlayerAsync();
-                    LogMessageToFile("update playerrefresh await");
                     await RefreshPlayerTask;
-                    LogMessageToFile("update playertaskstatus:" + RefreshPlayerTask.Status.ToString());
                 }
                 catch
                 {
@@ -399,7 +361,6 @@ namespace MediaMonkey
             }
             catch
             {
-                LogMessageToFile("updateplayer catch 2");
                 throw;
             }
             return;
@@ -896,8 +857,6 @@ namespace MediaMonkey
 
         public void ClosePlayer()
         {
-
-            //TODO:Implement better process validation logic from IsRunning
             if (IsRunning())
             {
                 try
