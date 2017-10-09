@@ -489,9 +489,7 @@ namespace MediaMonkey
         {
             if (CurrentTrack != null)
             {
-                string debugTitle = CurrentTrack.Title;
-                LogMessageToFile(debugTitle);
-                return debugTitle;
+                return CurrentTrack.Title;
             }
             return "";
         }
@@ -601,86 +599,6 @@ namespace MediaMonkey
         {
             return _Cover;
         }
-
-        //public string Cover()
-        //{
-        //    // Returns path of the album art cover
-        //    // Currently, art stored in tags is not supported
-        //    // albumart tagged as 'Cover (front)' is preferred
-        //    // If multiple covers are found, the higher sorted one
-        //    // gets precedence
-        //    // If no correctly tagged art ist found, the hightest sorted
-        //    // gets precedence
-
-        //    string AlbumArtPath = "";
-
-        //    if (!IsInitialized())
-        //    {
-        //        Initialize();
-        //        return "";
-        //    }
-
-        //    if (!AsyncQueue["UpdateCover"])
-        //    {
-        //        try
-        //        {
-        //            List<Cover> coverList = mm.GetCoverList(false).Where(x => x.CoverStorage == 1).ToList();
-
-        //            if (coverList.Count > 0)
-        //            {
-
-        //                var covers = coverList.Where(x => x.CoverType == 3).ToList();
-        //                if (covers.Count > 0)
-        //                {
-        //                    AlbumArtPath = covers.FirstOrDefault().PicturePath;
-        //                }
-        //                else
-        //                {
-        //                    // couldn't find art with the correct tag, use the first one
-        //                    AlbumArtPath = coverList.FirstOrDefault().PicturePath;
-        //                }
-        //            }
-        //        }
-        //        catch (Exception)
-        //        {
-        //            Dispose();
-        //        }
-        //    }
-        //    return AlbumArtPath;
-        //}
-
-        //public void UpdateCover()
-        //{
-        //    AsyncQueue["UpdateCover"] = true;
-
-        //    try
-        //    {
-        //        List<Cover> coverList = mm.GetCoverList(false).Where(x => x.CoverStorage == 1).ToList();
-
-        //        if (coverList.Count > 0)
-        //        {
-
-        //            var covers = coverList.Where(x => x.CoverType == 3).ToList();
-        //            if (covers.Count > 0)
-        //            {
-        //                _Cover = covers.FirstOrDefault().PicturePath;
-        //            }
-        //            else
-        //            {
-        //                // couldn't find art with the correct tag, use the first one
-        //                _Cover = coverList.FirstOrDefault().PicturePath;
-        //            }
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Dispose();
-        //    }
-        //    finally
-        //    {
-        //        AsyncQueue["UpdateCover"] = false;
-        //    }
-        //}
 
         public string File()
         {
