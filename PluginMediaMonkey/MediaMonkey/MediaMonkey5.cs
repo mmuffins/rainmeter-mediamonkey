@@ -58,7 +58,7 @@ namespace MediaMonkey
             LogMessageToFile("init");
             if (OnCooldown || !IsRunning())
             {
-                LogMessageToFile("init on cooldown");
+                LogMessageToFile("init on cooldown or mm not running");
                 return;
             }
 
@@ -129,6 +129,7 @@ namespace MediaMonkey
             {
                 // Currently initializing or not running
                 // try again later
+                ClearCachedData();
                 return false;
             }
 
@@ -195,7 +196,6 @@ namespace MediaMonkey
                 }
                 // Couldn't find the correct process, dispose of the mm object
                 MediaMonkeyProcessId = 0;
-                //Dispose();
             }
             else
             {
@@ -213,14 +213,12 @@ namespace MediaMonkey
                     else
                     {
                         MediaMonkeyProcessId = 0;
-                        //Dispose();
                     }
 
                 }
                 catch (Exception)
                 {
                     MediaMonkeyProcessId = 0;
-                    //Dispose();
                 }
             }
             return false;
@@ -240,10 +238,18 @@ namespace MediaMonkey
             if (RefreshPlayerCts != null) RefreshPlayerCts.Cancel();
             if (RefreshTrackCts != null) RefreshTrackCts.Cancel();
             if (RefreshCoverCts != null) RefreshCoverCts.Cancel();
-            CurrentTrack = null;
-            Player = null;
-            AlbumArt = null;
-            _Cover = "";
+
+            if (!IsRunning())
+            {
+                // In a lot of cases the remote socket for chrome is
+                // busy for a second and won't reply immediately
+                // it's fine to cancel updates and reinitialize to prevent other issues
+                // but immediately clearing the cached objects would cause the values 
+                // to 'flicker' since rainmeter immediately clears the values
+                // only null them if the process is gone, indicating that mm actually shut down
+
+                this.ClearCachedData();
+            }
 
             if (mm != null)
             {
@@ -255,12 +261,10 @@ namespace MediaMonkey
                         {
                             mm.Dispose();
                         }
-                    } 
+                    }
 
                 }
-                catch
-                {
-                }
+                catch { }
                 mm = null;
             }
             LogMessageToFile("enddispose");
@@ -463,6 +467,14 @@ namespace MediaMonkey
             {
                 throw;
             }
+        }
+
+        private void ClearCachedData()
+        {
+            CurrentTrack = null;
+            Player = null;
+            AlbumArt = null;
+            _Cover = "";
         }
 
 
