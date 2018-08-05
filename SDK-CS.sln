@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginMediaMonkey", "PluginMediaMonkey\PluginMediaMonkey.csproj", "{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mmio", "mmio\mmio.csproj", "{8106D5B1-0256-4F3E-B6C0-245B08286BD9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,14 +27,11 @@ Global
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x64.Build.0 = Release|x64
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x86.ActiveCfg = Release|x86
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x86.Build.0 = Release|x86
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Debug|x64.ActiveCfg = Debug|x64
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Debug|x86.ActiveCfg = Debug|x86
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Release|Any CPU.ActiveCfg = Release|x64
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Release|x64.ActiveCfg = Release|x64
-		{8106D5B1-0256-4F3E-B6C0-245B08286BD9}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1F15191-9EDE-43C2-9A65-C92E3FE3CA4D}
 	EndGlobalSection
 EndGlobal
