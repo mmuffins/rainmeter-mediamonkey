@@ -1,9 +1,26 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginMediaMonkey", "PluginMediaMonkey\PluginMediaMonkey.csproj", "{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{F7A8DA7F-329E-4BFF-91DA-BA46F0F385DE}"
+	ProjectSection(SolutionItems) = preProject
+		API\DllExporter.exe = API\DllExporter.exe
+		API\RainmeterAPI.cs = API\RainmeterAPI.cs
+		API\RainmeterAPI.h = API\RainmeterAPI.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x64", "x64", "{338A0CDA-D678-40A3-8063-996B2203C7EB}"
+	ProjectSection(SolutionItems) = preProject
+		API\x64\Rainmeter.lib = API\x64\Rainmeter.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x32", "x32", "{6A2ED578-42DD-4F23-8A35-EBB5574BB62C}"
+	ProjectSection(SolutionItems) = preProject
+		API\x32\Rainmeter.lib = API\x32\Rainmeter.lib
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,14 +32,12 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|Any CPU.Build.0 = Debug|x64
+		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|x64.ActiveCfg = Debug|x64
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|x64.Build.0 = Debug|x64
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|x86.ActiveCfg = Debug|x86
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Debug|x86.Build.0 = Debug|x86
-		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|Any CPU.ActiveCfg = Release|x64
-		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|Any CPU.Build.0 = Release|x64
+		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|Any CPU.ActiveCfg = Release|x86
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x64.ActiveCfg = Release|x64
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x64.Build.0 = Release|x64
 		{5B630D34-2B3F-4519-A5DE-7F30C617D2DE}.Release|x86.ActiveCfg = Release|x86
@@ -30,6 +45,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{338A0CDA-D678-40A3-8063-996B2203C7EB} = {F7A8DA7F-329E-4BFF-91DA-BA46F0F385DE}
+		{6A2ED578-42DD-4F23-8A35-EBB5574BB62C} = {F7A8DA7F-329E-4BFF-91DA-BA46F0F385DE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F1F15191-9EDE-43C2-9A65-C92E3FE3CA4D}
