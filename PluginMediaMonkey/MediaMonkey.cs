@@ -13,14 +13,22 @@ namespace PluginMediaMonkey
 
         public void TempConnect()
         {
-            LogMessageToFile("aa");
+            LogMessageToFile("Start Tempconnect");
             try
             {
-                //Session = new MediaMonkeySession();
-                //Session.OpenSessionAsync().Wait();
-                //Session.Player.RefreshAsync().Wait();
-                //Session.RefreshCurrentTrackAsync().Wait();
-                //Session.EnableUpdates().GetAwaiter();
+                Session = new MediaMonkeySession();
+                LogMessageToFile("OpenSession");
+                Session.OpenSessionAsync().Wait();
+                LogMessageToFile("RefreshAsync");
+                Session.Player.RefreshAsync().Wait();
+                LogMessageToFile("Is Playing:" + Session.Player.IsPlaying);
+                LogMessageToFile("RefreshTrack");
+                Session.RefreshCurrentTrackAsync().Wait();
+                LogMessageToFile("Title:" + Session.CurrentTrack.Title);
+                LogMessageToFile("Artist:" + Session.CurrentTrack.Artist);
+                LogMessageToFile("EnableUpdates");
+                Session.EnableUpdates().GetAwaiter();
+                LogMessageToFile("Done");
                 //while (true)
                 //{
                 //    Console.WriteLine("Current Track:");
@@ -35,6 +43,7 @@ namespace PluginMediaMonkey
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                LogMessageToFile(ex.Message);
             }
 
         }
