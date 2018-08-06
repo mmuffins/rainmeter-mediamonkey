@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using MediaMonkeyNet;
 using Rainmeter;
 
 // Overview: This is a blank canvas on which to build your plugin.
@@ -24,11 +25,28 @@ namespace PluginMediaMonkey
 
     public class Plugin
     {
+        private static MediaMonkey mm;
+
         [DllExport]
         public static void Initialize(ref IntPtr data, IntPtr rm)
         {
             data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure()));
             Rainmeter.API api = (Rainmeter.API)rm;
+            api.LogF(API.LogType.Warning, "MM:init");
+
+            mm = new MediaMonkey();
+            try
+            {
+                mm.Session = new MediaMonkeySession();
+                //mm.Session.Player.RefreshAsync().GetAwaiter();
+                mm.TempConnect();
+            }
+            catch (Exception ex)
+            {
+                API.LogF(rm, API.LogType.Error, "MM:error: {0}", ex.InnerException.Message);
+            }
+            //mm.Session.RefreshCurrentTrackAsync().Wait();
+            //mm.Session.EnableUpdates().Wait();
         }
 
         [DllExport]
@@ -45,6 +63,10 @@ namespace PluginMediaMonkey
         [DllExport]
         public static void Reload(IntPtr data, IntPtr rm, ref double maxValue)
         {
+            API.LogF(rm,API.LogType.Warning, "MM:reload");
+            //API.LogF(rm, API.LogType.Notice, "MM:Title: {0}", mm.Session.CurrentTrack.Title);
+            //API.LogF(rm, API.LogType.Notice, "MM:Artist: {0}", mm.Session.CurrentTrack.Artist);
+            //API.LogF(rm, API.LogType.Notice, "MM:Playing: {0}", mm.Session.Player.IsPlaying);
             Measure measure = (Measure)data;
         }
 
