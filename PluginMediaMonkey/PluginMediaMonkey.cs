@@ -38,7 +38,7 @@ namespace PluginMediaMonkey
             try
             {
                 mm.Session = new MediaMonkeySession();
-                //mm.Session.Player.RefreshAsync().GetAwaiter();
+                //mm.Session.Player.RefreshAsync().GetAwaiter;
                 mm.TempConnect();
             }
             catch (Exception ex)
