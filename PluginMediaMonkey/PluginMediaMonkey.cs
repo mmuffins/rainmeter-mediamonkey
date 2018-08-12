@@ -14,18 +14,6 @@ namespace PluginMediaMonkey
             data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure()));
             API api = (Rainmeter.API)rm;
             api.LogF(API.LogType.Warning, "MediaMonkey:init");
-
-            //mm = new MediaMonkey();
-            //try
-            //{
-            //    mm.Session = new MediaMonkeySession();
-            //    //mm.Session.Player.RefreshAsync().GetAwaiter;
-            //    mm.TempConnect();
-            //}
-            //catch (Exception ex)
-            //{
-            //    API.LogF(rm, API.LogType.Error, "MediaMonkey:error: {0}", ex.InnerException.Message);
-            //}
         }
 
         [DllExport]
