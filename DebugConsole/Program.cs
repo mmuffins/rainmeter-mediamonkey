@@ -17,14 +17,32 @@ namespace Sample
 
             //mm.TempConnect();
 
-            var measure = new Measure();
-            measure.Reload(Measure.MeasureType.Title);
+            var title = new Measure();
+            title.Reload(Measure.MeasureType.Title);
+
+            var progress = new Measure();
+            progress.Reload(Measure.MeasureType.Progress);
+
+            var duration = new Measure();
+            duration.Reload(Measure.MeasureType.Duration);
+
+            var position = new Measure();
+            position.Reload(Measure.MeasureType.Position);
+
+            var state = new Measure();
+            state.Reload(Measure.MeasureType.State);
 
             //mm.Session.OpenSessionAsync();
             //mm.Session.Player.RefreshAsync();
+            int count = 0;
             while (true)
             {
-                Console.WriteLine("Title:" + measure.GetString());
+                Console.WriteLine(count++);
+                Console.WriteLine("Title:" + title.GetString());
+                Console.WriteLine("state:" + state.GetString());
+                Console.WriteLine("progress:" + progress.Update());
+                Console.WriteLine("duration:" + duration.Update());
+                Console.WriteLine("position:" + position.Update());
                 Thread.Sleep(1000);
             }
         }
