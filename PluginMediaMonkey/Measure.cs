@@ -71,10 +71,10 @@ namespace PluginMediaMonkey
         private static bool RefreshInProgress = false;
         private static Process MMProcess;
         private static Process[] MMengineProcessAr;
-        private const int StartUpDelay = 800;
 
         public MeasureType Type { get; set; }
         public API RainmeterAPI { get; set; }
+        public int StartUpDelay { get; set; } = 800;
         public IntPtr buffer = IntPtr.Zero;
 
         static public implicit operator Measure(IntPtr data)
@@ -152,9 +152,9 @@ namespace PluginMediaMonkey
             }
         }
 
-        public void Reload(MeasureType type, API api)
+        public void Reload(MeasureType measureType, API api)
         {
-            Type = type;
+            Type = measureType;
             if (mmSession == null)
             {
                 InitMMSession().GetAwaiter();
