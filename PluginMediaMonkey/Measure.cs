@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using MediaMonkeyNet;
+using Microsoft.Win32;
 using Rainmeter;
 
 namespace PluginMediaMonkey
@@ -71,10 +72,12 @@ namespace PluginMediaMonkey
         private static bool RefreshInProgress = false;
         private static Process MMProcess;
         private static Process[] MMengineProcessAr;
+        private const string MMDefaultInstallPath = @"C:\Program Files (x86)\MediaMonkey\MediaMonkey.exe";
 
         public MeasureType Type { get; set; }
         public API RainmeterAPI { get; set; }
         public int StartUpDelay { get; set; } = 800;
+        public string MMInstallLocation { get; set; }
         public IntPtr buffer = IntPtr.Zero;
 
         static public implicit operator Measure(IntPtr data)
@@ -87,17 +90,14 @@ namespace PluginMediaMonkey
             if(InitInProgress || IsMMRunning() == false) { return; }
 
             InitInProgress = true;
-            Console.WriteLine("init");
 
             var tempSession = new MediaMonkeySession();
             try
             {
-                Console.WriteLine("Opensession");
                 await tempSession.OpenSessionAsync();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine("Dispose");
                 tempSession.Dispose();
                 tempSession = null;
                 //throw;
@@ -117,7 +117,7 @@ namespace PluginMediaMonkey
                 tempSession.EnableUpdates().GetAwaiter();
                 mmSession = tempSession;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Dispose2");
                 tempSession.Dispose();
@@ -136,12 +136,10 @@ namespace PluginMediaMonkey
 
             try
             {
-                Console.WriteLine("refresh");
                 await mmSession.Player.RefreshTrackPositionAsync().ConfigureAwait(false);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine("Dispose");
                 mmSession.Dispose();
                 mmSession = null;
                 //throw;
@@ -168,6 +166,12 @@ namespace PluginMediaMonkey
 
         public double Update(bool skipRefresh)
         {
+            if (!IsMMRunning() && mmSession != null)
+            {
+                mmSession.Dispose();
+                mmSession = null;
+            }
+
             if (mmSession == null)
             {
                 InitMMSession().GetAwaiter();
@@ -222,6 +226,12 @@ namespace PluginMediaMonkey
 
         public string GetString()
         {
+            if (!IsMMRunning() && mmSession != null)
+            {
+                mmSession.Dispose();
+                mmSession = null;
+            }
+
             if (mmSession == null)
             {
                 InitMMSession().GetAwaiter();
@@ -303,6 +313,22 @@ namespace PluginMediaMonkey
                 return;
             }
 
+            if (!IsMMRunning() && mmSession != null)
+            {
+                mmSession.Dispose();
+                mmSession = null;
+            }
+
+            if (mmSession == null)
+            {
+                InitMMSession().Wait();
+            }
+
+            if (mmSession == null && parsedBang != BangType.TogglePlayer && parsedBang != BangType.ClosePlayer && parsedBang != BangType.OpenPlayer)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, "MediaMonkey.dll: Could not initialize MediaMonkey.");
+            }
+
             switch (parsedBang)
             {
                 case BangType.Play:
@@ -330,13 +356,13 @@ namespace PluginMediaMonkey
                     break;
 
                 case BangType.SetRating:
-                    int argsRating;
+                    double argsRating;
 
-                    if (int.TryParse(args[1], out argsRating))
+                    if (double.TryParse(args[1], out argsRating))
                     {
-                        int mmRating = argsRating * 20;
+                        int mmRating = (int)(argsRating * 20);
                         if (mmRating <= 0) mmRating = -1;
-                        mmSession.CurrentTrack.SetRatingAsync(-1).GetAwaiter();
+                        mmSession.CurrentTrack.SetRatingAsync(mmRating).GetAwaiter();
                     }
                     break;
 
@@ -387,10 +413,11 @@ namespace PluginMediaMonkey
                     break;
 
                 case BangType.SetVolume:
-                    int parsedVolume;
+                    double parsedVolume;
 
-                    if (!string.IsNullOrWhiteSpace(args[1]) && int.TryParse(args[1], out parsedVolume))
+                    if (!string.IsNullOrWhiteSpace(args[1]) && double.TryParse(args[1], out parsedVolume))
                     {
+                        parsedVolume /= 100;
                         if (args[1].Substring(0, 1) == "+" || args[1].Substring(0, 1) == "-")
                         {
                             mmSession.Player.SetVolumeAsync(mmSession.Player.Volume + parsedVolume);
@@ -404,15 +431,46 @@ namespace PluginMediaMonkey
                     break;
 
                 case BangType.OpenPlayer:
-                    throw new NotImplementedException();
+                    if (!IsMMRunning())
+                    {
+                        try
+                        {
+                            Process.Start(GetMMExecutablePath());
+                        }
+                        catch (Exception ex)
+                        {
+                            RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
+                        }
+                    }
                     break;
 
                 case BangType.ClosePlayer:
-                    throw new NotImplementedException();
+                    try
+                    {
+                        ClosePlayer();
+                    }
+                    catch (Exception ex)
+                    {
+                        RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
+                    }
                     break;
 
                 case BangType.TogglePlayer:
-                    throw new NotImplementedException();
+                    try
+                    {
+                        if (IsMMRunning())
+                        {
+                            ClosePlayer();
+                        }
+                        else
+                        {
+                            Process.Start(GetMMExecutablePath());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
+                    }
                     break;
             }
         }
@@ -452,6 +510,28 @@ namespace PluginMediaMonkey
             // There is currently no (known) way to actually check for a ready state, so we wait for a 
             // few moments after mm was started to give a green light
             return (DateTime.Now.Subtract(MMengineProcessAr[1].StartTime).TotalMilliseconds >= StartUpDelay);
+        }
+
+        private void ClosePlayer()
+        {
+            if (IsMMRunning() && mmSession != null)
+            {
+                mmSession.ClosePlayer().GetAwaiter();
+                mmSession.Dispose();
+                mmSession = null;
+            }
+        }
+
+        public string GetMMExecutablePath()
+        {
+            // Returns either the manually provided install path, the install path from the registry or the default install path,
+            // in this order, depending on what is available.
+            if (!string.IsNullOrEmpty(MMInstallLocation)) return MMInstallLocation;
+
+            string regPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Media\\MediaMonkey\\shell\\open\\command", "", "").ToString();
+            if (!string.IsNullOrEmpty(regPath)) return regPath;
+
+            return MMDefaultInstallPath;
         }
 
         private string GetTempPath()
