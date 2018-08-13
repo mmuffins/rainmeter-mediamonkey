@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using MediaMonkeyNet;
+using Rainmeter;
 
 namespace PluginMediaMonkey
 {
@@ -47,6 +48,24 @@ namespace PluginMediaMonkey
             Year
         }
 
+        public enum BangType
+        {
+            Play,
+            Pause,
+            PlayPause,
+            Stop,
+            Previous,
+            Next,
+            SetRating,
+            SetPosition,
+            SetShuffle,
+            SetVolume,
+            SetRepeat,
+            OpenPlayer,
+            ClosePlayer,
+            TogglePlayer
+        }
+
         private static MediaMonkeySession mmSession;
         private static bool InitInProgress = false;
         private static bool RefreshInProgress = false;
@@ -55,6 +74,7 @@ namespace PluginMediaMonkey
         private const int StartUpDelay = 800;
 
         public MeasureType Type { get; set; }
+        public API RainmeterAPI { get; set; }
         public IntPtr buffer = IntPtr.Zero;
 
         static public implicit operator Measure(IntPtr data)
@@ -132,7 +152,7 @@ namespace PluginMediaMonkey
             }
         }
 
-        public void Reload(MeasureType type)
+        public void Reload(MeasureType type, API api)
         {
             Type = type;
             if (mmSession == null)
@@ -273,52 +293,46 @@ namespace PluginMediaMonkey
             return string.Empty;
         }
 
-        public void ExecuteBang(string args)
+        public void ExecuteBang(string[] args)
         {
-            string[] argsArray = args.Split(' ');
+            Measure.BangType parsedBang;
 
-            switch (argsArray[0].ToLowerInvariant())
+            if (!Enum.TryParse(args[0], true, out parsedBang))
             {
-                case "play":
+                RainmeterAPI.LogF(API.LogType.Error, "MediaMonkey.dll: Bang type=" + args[0] + " is not valid.");
+                return;
+            }
+
+            switch (parsedBang)
+            {
+                case BangType.Play:
                     mmSession.Player.StartPlaybackAsync().GetAwaiter();
                     break;
 
-                case "pause":
+                case BangType.Pause:
                     mmSession.Player.PausePlaybackAsync().GetAwaiter();
                     break;
 
-                case "playpause":
+                case BangType.PlayPause:
                     mmSession.Player.TogglePlaybackAsync().GetAwaiter();
                     break;
 
-                case "stop":
+                case BangType.Stop:
                     mmSession.Player.StopPlaybackAsync().GetAwaiter();
                     break;
 
-                case "previous":
+                case BangType.Previous:
                     mmSession.Player.PreviousTrackAsync().GetAwaiter();
                     break;
 
-                case "next":
+                case BangType.Next:
                     mmSession.Player.NextTrackAsync().GetAwaiter();
                     break;
 
-                case "openplayer":
-                    throw new NotImplementedException();
-                    break;
-
-                case "closeplayer":
-                    throw new NotImplementedException();
-                    break;
-
-                case "toggleplayer":
-                    throw new NotImplementedException();
-                    break;
-
-                case "setrating":
+                case BangType.SetRating:
                     int argsRating;
 
-                    if (int.TryParse(argsArray[1], out argsRating))
+                    if (int.TryParse(args[1], out argsRating))
                     {
                         int mmRating = argsRating * 20;
                         if (mmRating <= 0) mmRating = -1;
@@ -326,19 +340,19 @@ namespace PluginMediaMonkey
                     }
                     break;
 
-                case "setposition":
+                case BangType.SetPosition:
                     double argsPosition;
 
-                    if (double.TryParse(argsArray[1], out argsPosition))
+                    if (double.TryParse(args[1], out argsPosition))
                     {
                         mmSession.Player.SetProgressAsync(argsPosition / 100.0).GetAwaiter();
                     }
                     break;
 
-                case "setshuffle":
+                case BangType.SetShuffle:
                     int argsShuffle;
 
-                    if (int.TryParse(argsArray[1], out argsShuffle))
+                    if (int.TryParse(args[1], out argsShuffle))
                     {
                         switch (argsShuffle)
                         {
@@ -353,10 +367,10 @@ namespace PluginMediaMonkey
                     }
                     break;
 
-                case "setrepeat":
+                case BangType.SetRepeat:
                     int argsRepeat;
 
-                    if (int.TryParse(argsArray[1], out argsRepeat))
+                    if (int.TryParse(args[1], out argsRepeat))
                     {
                         switch (argsRepeat)
                         {
@@ -372,12 +386,12 @@ namespace PluginMediaMonkey
                     }
                     break;
 
-                case "setvolume":
+                case BangType.SetVolume:
                     int parsedVolume;
 
-                    if (!string.IsNullOrWhiteSpace(argsArray[1]) && int.TryParse(argsArray[1], out parsedVolume))
+                    if (!string.IsNullOrWhiteSpace(args[1]) && int.TryParse(args[1], out parsedVolume))
                     {
-                        if (argsArray[1].Substring(0, 1) == "+" || argsArray[1].Substring(0, 1) == "-")
+                        if (args[1].Substring(0, 1) == "+" || args[1].Substring(0, 1) == "-")
                         {
                             mmSession.Player.SetVolumeAsync(mmSession.Player.Volume + parsedVolume);
                         }
@@ -387,6 +401,18 @@ namespace PluginMediaMonkey
                         }
 
                     }
+                    break;
+
+                case BangType.OpenPlayer:
+                    throw new NotImplementedException();
+                    break;
+
+                case BangType.ClosePlayer:
+                    throw new NotImplementedException();
+                    break;
+
+                case BangType.TogglePlayer:
+                    throw new NotImplementedException();
                     break;
             }
         }

@@ -13,7 +13,6 @@ namespace PluginMediaMonkey
         {
             data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure()));
             API api = (Rainmeter.API)rm;
-            api.LogF(API.LogType.Warning, "MediaMonkey:init");
         }
 
         [DllExport]
@@ -32,21 +31,17 @@ namespace PluginMediaMonkey
         {
             var api = (API)rm;
             var measure = (Measure)data;
-            api.LogF(API.LogType.Warning, "MediaMonkey.dll:reload");
 
             string inputType = api.ReadString("PlayerType", "", false);
-            Measure.MeasureType parsedMeasure;
-            bool measureParseSuccess = Enum.TryParse(inputType, true, out parsedMeasure);
 
-            if (!measureParseSuccess)
+            Measure.MeasureType parsedMeasure;
+            if (!(Enum.TryParse(inputType, true, out parsedMeasure)))
             {
-                api.LogF(API.LogType.Error, "MediaMonkey.dll: Measure type=" + inputType + " not valid");
+                api.LogF(API.LogType.Error, "MediaMonkey.dll: Measure type=" + inputType + " is not valid.");
                 return;
             }
 
-            measure.Reload(parsedMeasure);
-
-            api.LogF(API.LogType.Warning, "MediaMonkey.dll:reload done");
+            measure.Reload(parsedMeasure, api);
         }
 
         [DllExport]
@@ -79,6 +74,7 @@ namespace PluginMediaMonkey
         public static void ExecuteBang(IntPtr data, [MarshalAs(UnmanagedType.LPWStr)]String args)
         {
             Measure measure = (Measure)data;
+            measure.ExecuteBang(args.Split(' '));
         }
 
         //[DllExport]

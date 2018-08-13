@@ -1,4 +1,5 @@
 ﻿using PluginMediaMonkey;
+using Rainmeter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,28 +13,23 @@ namespace Sample
     {
         static void Main(string[] args)
         {
-
-            //var mm = new MediaMonkey();
-
-            //mm.TempConnect();
+            var api = new API(new IntPtr());
 
             var title = new Measure();
-            title.Reload(Measure.MeasureType.Title);
+            title.Reload(Measure.MeasureType.Title, api);
 
             var progress = new Measure();
-            progress.Reload(Measure.MeasureType.Progress);
+            progress.Reload(Measure.MeasureType.Progress, api);
 
             var duration = new Measure();
-            duration.Reload(Measure.MeasureType.Duration);
+            duration.Reload(Measure.MeasureType.Duration, api);
 
             var position = new Measure();
-            position.Reload(Measure.MeasureType.Position);
+            position.Reload(Measure.MeasureType.Position, api);
 
             var state = new Measure();
-            state.Reload(Measure.MeasureType.State);
+            state.Reload(Measure.MeasureType.State, api);
 
-            //mm.Session.OpenSessionAsync();
-            //mm.Session.Player.RefreshAsync();
             int count = 0;
             while (true)
             {
