@@ -538,30 +538,6 @@ namespace PluginMediaMonkey
             return MMDefaultInstallPath;
         }
 
-        private string GetTempPath()
-        {
-            string path = System.Environment.GetEnvironmentVariable("TEMP");
-            if (!path.EndsWith("\\")) path += "\\";
-            return path;
-        }
-
-        private void LogMessageToFile(string msg)
-        {
-            try
-            {
-                using (var sw = System.IO.File.AppendText(GetTempPath() + "rainmeterdebug.txt"))
-                {
-                    string logLine = System.String.Format("{0:HH:mm:ss.fff}: {1}.", System.DateTime.Now, msg);
-                    sw.WriteLine(logLine);
-                    sw.Close();
-                }
-
-            }
-            catch (Exception)
-            {
-            }
-        }
-
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
