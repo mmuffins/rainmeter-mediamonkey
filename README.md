@@ -22,7 +22,7 @@ Also see the official [Rainmeter manual](https://docs.rainmeter.net/manual/measu
 - __Artist__ - Artist of the current song.
 - __Conductor__ - Conductor of the current song.
 - __Composer__ - Composer of the current song.
-- __Cover__ - Path to the cover  of the current song. At the moment, only images stored as separate file are supported. Images tagged as 'Cover (Front)' get precedence over other artwork.
+- __Cover__ - Path to the cover  of the current song. Images tagged as 'Cover (Front)' get precedence over other artwork.
 - __Custom1-10__ - Custom 1 - 10 property of the current song.
 - __Disc__ - Disc number of the current song. This measure should be used as string since the disc number in MediaMonkey can also be a string.
 - __Duration__ - Length of the current song in seconds. If used as string, the format returned is MM:SS.
