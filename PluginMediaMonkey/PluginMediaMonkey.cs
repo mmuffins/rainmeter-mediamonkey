@@ -32,13 +32,25 @@ namespace PluginMediaMonkey
             var api = (API)rm;
             var measure = (Measure)data;
 
-            string inputType = api.ReadString("PlayerType", "", false);
+            string measureType = api.ReadString("PlayerType", "", false);
 
             Measure.MeasureType parsedMeasure;
-            if (!(Enum.TryParse(inputType, true, out parsedMeasure)))
+            if (!(Enum.TryParse(measureType, true, out parsedMeasure)))
             {
-                api.LogF(API.LogType.Error, "MediaMonkey.dll: Measure type=" + inputType + " is not valid.");
+                api.LogF(API.LogType.Error, "MediaMonkey.dll: Measure type=" + measureType + " is not valid.");
                 return;
+            }
+
+            string playerPath = api.ReadString("PlayerPath", "", false);
+            if (!string.IsNullOrWhiteSpace(playerPath))
+            {
+                measure.MMInstallLocation = playerPath;
+            }
+
+            bool disableLeadingZero;
+            if (bool.TryParse(api.ReadString("DisableLeadingZero", "0", false), out disableLeadingZero))
+            {
+                measure.DisableLeadingZero = disableLeadingZero;
             }
 
             measure.Reload(parsedMeasure, api);

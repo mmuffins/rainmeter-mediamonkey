@@ -78,6 +78,7 @@ namespace PluginMediaMonkey
         public API RainmeterAPI { get; set; }
         public int StartUpDelay { get; set; } = 800;
         public string MMInstallLocation { get; set; }
+        public bool DisableLeadingZero { get; set; }
         public IntPtr buffer = IntPtr.Zero;
 
         static public implicit operator Measure(IntPtr data)
@@ -194,13 +195,13 @@ namespace PluginMediaMonkey
                     }
                 case MeasureType.Progress:
                     if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
-                    return mmSession.Player.Progress * 100;
+                    return Math.Round((mmSession.Player.Progress * 100), 3);
                 case MeasureType.Position:
                     if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
-                    return mmSession.Player.TrackPosition / 1000;
+                    return Math.Round((mmSession.Player.TrackPosition / 1000.0));
                 case MeasureType.Duration:
                     if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
-                    return mmSession.Player.TrackLength / 1000.0;
+                    return Math.Round(mmSession.Player.TrackLength / 1000.0);
                 case MeasureType.Number:
                     return mmSession.CurrentTrack.TrackNumberInt;
                 case MeasureType.Rating:
@@ -286,10 +287,13 @@ namespace PluginMediaMonkey
                     return mmSession.CurrentTrack.Publisher;
                 case MeasureType.Title:
                     return mmSession.CurrentTrack.Title;
-                case MeasureType.State:
-                case MeasureType.Progress:
                 case MeasureType.Position:
                 case MeasureType.Duration:
+                    return DisableLeadingZero ?
+                        TimeSpan.FromSeconds(Update(true)).ToString(@"m\:ss") :
+                        TimeSpan.FromSeconds(Update(true)).ToString(@"mm\:ss");
+                case MeasureType.State:
+                case MeasureType.Progress:
                 case MeasureType.Volume:
                 case MeasureType.Status:
                 case MeasureType.Number:
