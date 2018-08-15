@@ -76,7 +76,7 @@ namespace PluginMediaMonkey
 
         public MeasureType Type { get; set; }
         public API RainmeterAPI { get; set; }
-        public int StartUpDelay { get; set; } = 800;
+        public int StartupDelay { get; set; } = 800;
         public string MMInstallLocation { get; set; }
         public bool DisableLeadingZero { get; set; }
         public IntPtr buffer = IntPtr.Zero;
@@ -513,7 +513,7 @@ namespace PluginMediaMonkey
             // Sending commands to MM before it is ready can crash the application.
             // There is currently no (known) way to actually check for a ready state, so we wait for a 
             // few moments after mm was started to give a green light
-            return (DateTime.Now.Subtract(MMengineProcessAr[1].StartTime).TotalMilliseconds >= StartUpDelay);
+            return (DateTime.Now.Subtract(MMengineProcessAr[1].StartTime).TotalMilliseconds >= StartupDelay);
         }
 
         private void ClosePlayer()

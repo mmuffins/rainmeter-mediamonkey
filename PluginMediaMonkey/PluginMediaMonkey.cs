@@ -53,6 +53,12 @@ namespace PluginMediaMonkey
                 measure.DisableLeadingZero = disableLeadingZero;
             }
 
+            int startupDelay;
+            if (int.TryParse(api.ReadString("StartupDelay", "800", false), out startupDelay))
+            {
+                measure.StartupDelay = startupDelay;
+            }
+
             measure.Reload(parsedMeasure, api);
         }
 
