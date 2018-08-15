@@ -117,7 +117,7 @@ namespace PluginMediaMonkey
                 tempSession.EnableUpdates().GetAwaiter();
                 if(tempSession.CurrentTrack != null)
                 {
-                    await tempSession.CurrentTrack.LoadAlbumArt();
+                    await tempSession.CurrentTrack.LoadAlbumArt().ConfigureAwait(false);
                 }
 
                 mmSession = tempSession;
@@ -258,8 +258,7 @@ namespace PluginMediaMonkey
                     return mmSession.CurrentTrack.Conductor;
                 case MeasureType.Cover:
                     mmSession.LoadAlbumArt = true;
-                    var ab = mmSession.CurrentTrack.CoverList;
-                    return string.Empty;
+                    return GetCover();
                 case MeasureType.Custom1:
                     return mmSession.CurrentTrack.Custom1;
                 case MeasureType.Custom2:
@@ -308,6 +307,29 @@ namespace PluginMediaMonkey
                 case MeasureType.Shuffle:
                     return Update(true).ToString();
             }
+
+            return string.Empty;
+        }
+
+        public string GetCover()
+        {
+            if (mmSession.CurrentTrack is null || mmSession.CurrentTrack.CoverList is null || mmSession.CurrentTrack.CoverList.Count == 0)
+                return string.Empty;
+
+            // The current track has at least a single cover object, check if a front cover is available
+            Cover selectedCover = mmSession.CurrentTrack.CoverList
+                .FirstOrDefault(x => x.FilePath != "" && x.CoverType == "Cover (front)");
+
+
+            if (selectedCover != null)
+                return selectedCover.FilePath;
+
+            // No front cover was found, return the first available cover object
+            selectedCover = mmSession.CurrentTrack.CoverList
+                .FirstOrDefault(x => x.FilePath != "");
+
+            if (selectedCover != null)
+                return selectedCover.FilePath;
 
             return string.Empty;
         }
