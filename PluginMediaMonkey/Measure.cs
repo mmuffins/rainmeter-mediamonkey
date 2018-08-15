@@ -112,15 +112,18 @@ namespace PluginMediaMonkey
 
             try
             {
-                Console.WriteLine("isReadyInit:");
                 await tempSession.RefreshCurrentTrackAsync().ConfigureAwait(false);
                 await tempSession.Player.RefreshAsync().ConfigureAwait(false);
                 tempSession.EnableUpdates().GetAwaiter();
+                if(tempSession.CurrentTrack != null)
+                {
+                    await tempSession.CurrentTrack.LoadAlbumArt();
+                }
+
                 mmSession = tempSession;
             }
             catch (Exception)
             {
-                Console.WriteLine("Dispose2");
                 tempSession.Dispose();
                 tempSession = null;
             }
@@ -241,6 +244,8 @@ namespace PluginMediaMonkey
 
             switch (Type)
             {
+                case MeasureType.Title:
+                    return mmSession.CurrentTrack.Title;
                 case MeasureType.Album:
                     return mmSession.CurrentTrack.Album;
                 case MeasureType.AlbumArtist:
@@ -252,6 +257,8 @@ namespace PluginMediaMonkey
                 case MeasureType.Conductor:
                     return mmSession.CurrentTrack.Conductor;
                 case MeasureType.Cover:
+                    mmSession.LoadAlbumArt = true;
+                    var ab = mmSession.CurrentTrack.CoverList;
                     return string.Empty;
                 case MeasureType.Custom1:
                     return mmSession.CurrentTrack.Custom1;
@@ -285,8 +292,6 @@ namespace PluginMediaMonkey
                     return mmSession.CurrentTrack.Grouping;
                 case MeasureType.Publisher:
                     return mmSession.CurrentTrack.Publisher;
-                case MeasureType.Title:
-                    return mmSession.CurrentTrack.Title;
                 case MeasureType.Position:
                 case MeasureType.Duration:
                     return DisableLeadingZero ?

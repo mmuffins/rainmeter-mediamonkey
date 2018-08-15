@@ -33,6 +33,9 @@ namespace Sample
             var state = new Measure();
             state.Reload(Measure.MeasureType.State, api);
 
+            var cover = new Measure();
+            cover.Reload(Measure.MeasureType.Cover, api);
+
             int count = 0;
             while (true)
             {
@@ -44,6 +47,7 @@ namespace Sample
                 Console.WriteLine("durationStr:" + duration.GetString());
                 Console.WriteLine("position:" + position.Update());
                 Console.WriteLine("positionStr:" + position.GetString());
+                Console.WriteLine("Cover:" + cover.GetString());
                 Thread.Sleep(1000);
                 //title.ExecuteBang("TogglePlayer".Split(' '));
             }
