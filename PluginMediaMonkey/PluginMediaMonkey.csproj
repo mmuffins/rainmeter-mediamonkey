@@ -88,10 +88,10 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\RainmeterAPI.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Measure.cs" />
     <Compile Include="PluginMediaMonkey.cs" />
-    <Compile Include="$(SolutionDir)API\RainmeterAPI.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Costura.Fody">
@@ -111,7 +111,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="API\DllExporter.exe" />
+    <Content Include="API\RainmeterAPI.h" />
     <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="API\x32\Rainmeter.lib" />
+    <None Include="API\x64\Rainmeter.lib" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -122,6 +128,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Release ("$(SolutionDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)")</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Release ("$(ProjectDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)")</PostBuildEvent>
   </PropertyGroup>
 </Project>
