@@ -13,7 +13,10 @@ namespace Sample
     {
         static void Main(string[] args)
         {
+
             var api = new API(new IntPtr());
+
+
 
             var title = new Measure();
             title.Reload(Measure.MeasureType.Title, api);
@@ -38,8 +41,11 @@ namespace Sample
                 Console.WriteLine("state:" + state.GetString());
                 Console.WriteLine("progress:" + progress.Update());
                 Console.WriteLine("duration:" + duration.Update());
+                Console.WriteLine("durationStr:" + duration.GetString());
                 Console.WriteLine("position:" + position.Update());
+                Console.WriteLine("positionStr:" + position.GetString());
                 Thread.Sleep(1000);
+                //title.ExecuteBang("TogglePlayer".Split(' '));
             }
         }
     }
