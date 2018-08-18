@@ -13,6 +13,8 @@ namespace PluginMediaMonkey
     {
         public enum MeasureType
         {
+            Title,
+            OriginalTitle,
             Album,
             AlbumArtist,
             Artist,
@@ -44,9 +46,19 @@ namespace PluginMediaMonkey
             Shuffle,
             State,
             Status,
-            Title,
             Volume,
-            Year
+            Year,
+            DateAdded,
+            FileType,
+            ISRC,
+            LastPlayedDate,
+            OriginalArtist,
+            OriginalLyricist,
+            FilePath,
+            Tempo,
+            Mood,
+            Occasion,
+            Quality,
         }
 
         public enum BangType
@@ -303,6 +315,8 @@ namespace PluginMediaMonkey
                     return mmSession.CurrentTrack.Composer;
                 case MeasureType.Conductor:
                     return mmSession.CurrentTrack.Conductor;
+                case MeasureType.OriginalTitle:
+                    return mmSession.CurrentTrack.OriginalTitle;
                 case MeasureType.Cover:
                     mmSession.LoadAlbumArt = true;
                     return GetCover();
@@ -338,6 +352,28 @@ namespace PluginMediaMonkey
                     return mmSession.CurrentTrack.Grouping;
                 case MeasureType.Publisher:
                     return mmSession.CurrentTrack.Publisher;
+                case MeasureType.DateAdded:
+                    return mmSession.CurrentTrack.DateAdded.ToString();
+                case MeasureType.FileType:
+                    return mmSession.CurrentTrack.FileType;
+                case MeasureType.ISRC:
+                    return mmSession.CurrentTrack.ISRC;
+                case MeasureType.LastPlayedDate:
+                    return mmSession.CurrentTrack.LastPlayed.ToString();
+                case MeasureType.OriginalArtist:
+                    return mmSession.CurrentTrack.OriginalArtist;
+                case MeasureType.OriginalLyricist:
+                    return mmSession.CurrentTrack.OriginalLyricist;
+                case MeasureType.FilePath:
+                    return mmSession.CurrentTrack.Path;
+                case MeasureType.Tempo:
+                    return mmSession.CurrentTrack.Tempo;
+                case MeasureType.Mood:
+                    return mmSession.CurrentTrack.Mood;
+                case MeasureType.Occasion:
+                    return mmSession.CurrentTrack.Occasion;
+                case MeasureType.Quality:
+                    return mmSession.CurrentTrack.Quality;
                 case MeasureType.Position:
                 case MeasureType.Duration:
                     return DisableLeadingZero ?

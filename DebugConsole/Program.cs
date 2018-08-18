@@ -34,6 +34,12 @@ namespace Sample
             var cover = new Measure();
             cover.Reload(Measure.MeasureType.Cover, api);
 
+            var dateAdded = new Measure();
+            dateAdded.Reload(Measure.MeasureType.DateAdded, api);
+
+            var lastplayed = new Measure();
+            lastplayed.Reload(Measure.MeasureType.LastPlayedDate, api);
+
             int count = 0;
             while (true)
             {
@@ -45,7 +51,8 @@ namespace Sample
                 Console.WriteLine("durationStr:" + duration.GetString());
                 Console.WriteLine("position:" + position.Update());
                 Console.WriteLine("positionStr:" + position.GetString());
-                Console.WriteLine("Cover:" + cover.GetString());
+                Console.WriteLine("date added:" + dateAdded.GetString());
+                Console.WriteLine("last played:" + lastplayed.GetString());
                 Thread.Sleep(1000);
                 //title.ExecuteBang("TogglePlayer".Split(' '));
             }
