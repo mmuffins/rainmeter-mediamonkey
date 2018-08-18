@@ -51,6 +51,7 @@ namespace Sample
                 Console.WriteLine("durationStr:" + duration.GetString());
                 Console.WriteLine("position:" + position.Update());
                 Console.WriteLine("positionStr:" + position.GetString());
+                Console.WriteLine("cover:" + cover.GetString());
                 Console.WriteLine("date added:" + dateAdded.GetString());
                 Console.WriteLine("last played:" + lastplayed.GetString());
                 Thread.Sleep(1000);
