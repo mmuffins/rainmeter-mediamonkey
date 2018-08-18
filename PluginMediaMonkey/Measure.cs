@@ -97,14 +97,21 @@ namespace PluginMediaMonkey
             {
                 await tempSession.OpenSessionAsync();
             }
-            catch (Exception)
+            catch (System.Net.Http.HttpRequestException ex)
             {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error while establishing a connection to MediaMonkey ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
                 tempSession = null;
-                //throw;
+            }
+            catch (Exception ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('InitMMSession'):{ex.Message}");
+                tempSession.Dispose();
+                tempSession = null;
             }
 
-            if(tempSession == null)
+
+            if (tempSession == null)
             {
                 InitInProgress = false;
                 return;
@@ -112,18 +119,46 @@ namespace PluginMediaMonkey
 
             try
             {
-                await tempSession.RefreshCurrentTrackAsync().ConfigureAwait(false);
-                await tempSession.Player.RefreshAsync().ConfigureAwait(false);
-                tempSession.EnableUpdates().GetAwaiter();
-                if(tempSession.CurrentTrack != null)
+                try { await tempSession.RefreshCurrentTrackAsync().ConfigureAwait(false); }
+                catch (Newtonsoft.Json.JsonSerializationException ex)
+                {
+                    RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error parsing playing track ('InitMMSession'):{ex.Message}");
+                }
+
+                try { await tempSession.Player.RefreshAsync().ConfigureAwait(false); }
+                catch (Newtonsoft.Json.JsonSerializationException ex)
+                {
+                    RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error parsing player state ('InitMMSession'):{ex.Message}");
+                }
+
+                try { tempSession.EnableUpdates().GetAwaiter(); }
+                catch (Exception ex)
+                {
+                    // Player will never get any updates, might as well just dispose it
+                    tempSession.Dispose();
+                    tempSession = null;
+                    RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error while enablig player updates ('InitMMSession'):{ex.Message}");
+                }
+
+                if (tempSession != null &&  tempSession.CurrentTrack != null)
                 {
                     await tempSession.CurrentTrack.LoadAlbumArt().ConfigureAwait(false);
                 }
 
-                mmSession = tempSession;
+                if(tempSession != null)
+                {
+                    mmSession = tempSession;
+                }
             }
-            catch (Exception)
+            catch (System.Net.Http.HttpRequestException ex)
             {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to establish a connection to MediaMonkey ('InitMMSession'):{ex.Message}");
+                tempSession.Dispose();
+                tempSession = null;
+            }
+            catch (Exception ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
                 tempSession = null;
             }
@@ -142,11 +177,23 @@ namespace PluginMediaMonkey
             {
                 await mmSession.Player.RefreshTrackPositionAsync().ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Newtonsoft.Json.JsonSerializationException ex)
             {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to parse track progress information ('RefreshPlayer'):{ex.Message}");
                 mmSession.Dispose();
                 mmSession = null;
-                //throw;
+            }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to establish a connection to MediaMonkey ('RefreshPlayer'):{ex.Message}");
+                mmSession.Dispose();
+                mmSession = null;
+            }
+            catch (Exception ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('RefreshPlayer'):{ex.Message}");
+                mmSession.Dispose();
+                mmSession = null;
             }
             finally
             {
@@ -340,7 +387,7 @@ namespace PluginMediaMonkey
 
             if (!Enum.TryParse(args[0], true, out parsedBang))
             {
-                RainmeterAPI.LogF(API.LogType.Error, "MediaMonkey.dll: Bang type=" + args[0] + " is not valid.");
+                RainmeterAPI.LogF(API.LogType.Error, $"MediaMonkey.dll: Bang type '{args[0]}' is not valid.");
                 return;
             }
 
@@ -355,140 +402,127 @@ namespace PluginMediaMonkey
                 InitMMSession().Wait();
             }
 
-            if (mmSession == null && parsedBang != BangType.TogglePlayer && parsedBang != BangType.ClosePlayer && parsedBang != BangType.OpenPlayer)
+            if(mmSession == null)
             {
-                RainmeterAPI.LogF(API.LogType.Error, "MediaMonkey.dll: Could not initialize MediaMonkey.");
+                RainmeterAPI.LogF(API.LogType.Error, "MediaMonkey.dll: Could not initialize MediaMonkey. (ExecuteBang)");
+                return;
             }
 
-            switch (parsedBang)
+            try
             {
-                case BangType.Play:
-                    mmSession.Player.StartPlaybackAsync().GetAwaiter();
-                    break;
+                switch (parsedBang)
+                {
+                    case BangType.Play:
+                        mmSession.Player.StartPlaybackAsync().GetAwaiter();
+                        break;
 
-                case BangType.Pause:
-                    mmSession.Player.PausePlaybackAsync().GetAwaiter();
-                    break;
+                    case BangType.Pause:
+                        mmSession.Player.PausePlaybackAsync().GetAwaiter();
+                        break;
 
-                case BangType.PlayPause:
-                    mmSession.Player.TogglePlaybackAsync().GetAwaiter();
-                    break;
+                    case BangType.PlayPause:
+                        mmSession.Player.TogglePlaybackAsync().GetAwaiter();
+                        break;
 
-                case BangType.Stop:
-                    mmSession.Player.StopPlaybackAsync().GetAwaiter();
-                    break;
+                    case BangType.Stop:
+                        mmSession.Player.StopPlaybackAsync().GetAwaiter();
+                        break;
 
-                case BangType.Previous:
-                    mmSession.Player.PreviousTrackAsync().GetAwaiter();
-                    break;
+                    case BangType.Previous:
+                        mmSession.Player.PreviousTrackAsync().GetAwaiter();
+                        break;
 
-                case BangType.Next:
-                    mmSession.Player.NextTrackAsync().GetAwaiter();
-                    break;
+                    case BangType.Next:
+                        mmSession.Player.NextTrackAsync().GetAwaiter();
+                        break;
 
-                case BangType.SetRating:
-                    double argsRating;
+                    case BangType.SetRating:
+                        double argsRating;
 
-                    if (double.TryParse(args[1], out argsRating))
-                    {
-                        int mmRating = (int)(argsRating * 20);
-                        if (mmRating <= 0) mmRating = -1;
-                        mmSession.CurrentTrack.SetRatingAsync(mmRating).GetAwaiter();
-                    }
-                    break;
-
-                case BangType.SetPosition:
-                    double argsPosition;
-
-                    if (double.TryParse(args[1], out argsPosition))
-                    {
-                        mmSession.Player.SetProgressAsync(argsPosition / 100.0).GetAwaiter();
-                    }
-                    break;
-
-                case BangType.SetShuffle:
-                    int argsShuffle;
-
-                    if (int.TryParse(args[1], out argsShuffle))
-                    {
-                        switch (argsShuffle)
+                        if (double.TryParse(args[1], out argsRating))
                         {
-                            case 0:
-                            case 1:
-                                mmSession.Player.SetShuffleAsync(argsShuffle == 1).GetAwaiter();
-                                break;
-                            case -1:
-                                mmSession.Player.SetShuffleAsync(!mmSession.Player.IsShuffle).GetAwaiter();
-                                break;
+                            int mmRating = (int)(argsRating * 20);
+                            if (mmRating <= 0) mmRating = -1;
+                            mmSession.CurrentTrack.SetRatingAsync(mmRating).GetAwaiter();
                         }
-                    }
-                    break;
+                        break;
 
-                case BangType.SetRepeat:
-                    int argsRepeat;
+                    case BangType.SetPosition:
+                        double argsPosition;
 
-                    if (int.TryParse(args[1], out argsRepeat))
-                    {
-                        switch (argsRepeat)
+                        if (double.TryParse(args[1], out argsPosition))
                         {
-                            case 0:
-                            case 1:
-                                mmSession.Player.SetRepeatAsync(argsRepeat == 1).GetAwaiter();
-                                break;
-
-                            case -1:
-                                mmSession.Player.SetRepeatAsync(!mmSession.Player.IsRepeat).GetAwaiter();
-                                break;
+                            mmSession.Player.SetProgressAsync(argsPosition / 100.0).GetAwaiter();
                         }
-                    }
-                    break;
+                        break;
 
-                case BangType.SetVolume:
-                    double parsedVolume;
+                    case BangType.SetShuffle:
+                        int argsShuffle;
 
-                    if (!string.IsNullOrWhiteSpace(args[1]) && double.TryParse(args[1], out parsedVolume))
-                    {
-                        parsedVolume /= 100;
-                        if (args[1].Substring(0, 1) == "+" || args[1].Substring(0, 1) == "-")
+                        if (int.TryParse(args[1], out argsShuffle))
                         {
-                            mmSession.Player.SetVolumeAsync(mmSession.Player.Volume + parsedVolume);
+                            switch (argsShuffle)
+                            {
+                                case 0:
+                                case 1:
+                                    mmSession.Player.SetShuffleAsync(argsShuffle == 1).GetAwaiter();
+                                    break;
+                                case -1:
+                                    mmSession.Player.SetShuffleAsync(!mmSession.Player.IsShuffle).GetAwaiter();
+                                    break;
+                            }
                         }
-                        else
+                        break;
+
+                    case BangType.SetRepeat:
+                        int argsRepeat;
+
+                        if (int.TryParse(args[1], out argsRepeat))
                         {
-                            mmSession.Player.SetVolumeAsync(parsedVolume);
+                            switch (argsRepeat)
+                            {
+                                case 0:
+                                case 1:
+                                    mmSession.Player.SetRepeatAsync(argsRepeat == 1).GetAwaiter();
+                                    break;
+
+                                case -1:
+                                    mmSession.Player.SetRepeatAsync(!mmSession.Player.IsRepeat).GetAwaiter();
+                                    break;
+                            }
                         }
+                        break;
 
-                    }
-                    break;
+                    case BangType.SetVolume:
+                        double parsedVolume;
 
-                case BangType.OpenPlayer:
-                    if (!IsMMRunning())
-                    {
-                        try
+                        if (!string.IsNullOrWhiteSpace(args[1]) && double.TryParse(args[1], out parsedVolume))
+                        {
+                            parsedVolume /= 100;
+                            if (args[1].Substring(0, 1) == "+" || args[1].Substring(0, 1) == "-")
+                            {
+                                mmSession.Player.SetVolumeAsync(mmSession.Player.Volume + parsedVolume);
+                            }
+                            else
+                            {
+                                mmSession.Player.SetVolumeAsync(parsedVolume);
+                            }
+
+                        }
+                        break;
+
+                    case BangType.OpenPlayer:
+                        if (!IsMMRunning())
                         {
                             Process.Start(GetMMExecutablePath());
                         }
-                        catch (Exception ex)
-                        {
-                            RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
-                        }
-                    }
-                    break;
+                        break;
 
-                case BangType.ClosePlayer:
-                    try
-                    {
+                    case BangType.ClosePlayer:
                         ClosePlayer();
-                    }
-                    catch (Exception ex)
-                    {
-                        RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
-                    }
-                    break;
+                        break;
 
-                case BangType.TogglePlayer:
-                    try
-                    {
+                    case BangType.TogglePlayer:
                         if (IsMMRunning())
                         {
                             ClosePlayer();
@@ -497,12 +531,20 @@ namespace PluginMediaMonkey
                         {
                             Process.Start(GetMMExecutablePath());
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        RainmeterAPI.LogF(API.LogType.Error, $"Error while executing bang {parsedBang.ToString()}: {ex.Message}.");
-                    }
-                    break;
+                        break;
+                }
+            }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to establish a connection to MediaMonkey:{ex.Message}");
+                mmSession.Dispose();
+                mmSession = null;
+            }
+            catch (Exception ex)
+            {
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('ExecuteBang','{parsedBang.ToString()}'):{ex.Message}");
+                mmSession.Dispose();
+                mmSession = null;
             }
         }
 

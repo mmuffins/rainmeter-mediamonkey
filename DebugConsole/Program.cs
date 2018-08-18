@@ -16,8 +16,6 @@ namespace Sample
 
             var api = new API(new IntPtr());
 
-
-
             var title = new Measure();
             title.Reload(Measure.MeasureType.Title, api);
 
