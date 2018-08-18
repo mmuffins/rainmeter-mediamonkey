@@ -24,24 +24,37 @@ Also see the official [Rainmeter manual](https://docs.rainmeter.net/manual/measu
 - __Composer__ - Composer of the current song.
 - __Cover__ - Path to the cover  of the current song. Images tagged as 'Cover (Front)' get precedence over other artwork.
 - __Custom1-10__ - Custom 1 - 10 property of the current song.
+- __DateAdded__ - Timestamp of when the current song was added to the library.
 - __Disc__ - Disc number of the current song. This measure should be used as string since the disc number in MediaMonkey can also be a string.
 - __Duration__ - Length of the current song in seconds. If used as string, the format returned is MM:SS.
-- __File__ - File path to the current song.
+- __File__ - File name of the current song.
+- __FilePath__ - Full file path to the current song.
+- __FileType__ - File extension of the current song.
 - __FileID__ - The internal MediaMonkey ID of the current file.
 - __Genre__ - Genre of the current song.
 - __Grouping__ - Grouping of the current song.
+- __ISRC__ - ISRC of the current song.
+- __LastPlayedDate__ - Last played timestamp of the current song.
+- __Mood__ - Mood property of the current song.
 - __Number__ - Track number of the current song. This measure should be used as string since the track number in MediaMonkey can also be a string.
+- __Occasion__ - Occasion property of the current song.
+- __OriginalArtist__ - Original Artist property of the current song.
+- __OriginalLyricist__ - Original Lyricist property of the current song.
+- __OriginalTitle__ - Original Title property of the current song.
 - __Position__ - Playback position of the current in seconds. If used as string, the format returned is MM:SS.
 - __Progress__ - Playback position of the current song as percentage.
 - __Publisher__ - Publisher name of the current song.
+- __Quality__ - Quality property of the current song.
 - __Rating__ - Rating of the current song from 0.0 to 5.0.
 - __Repeat__ - 0 if repeat is off, 1 if on.
 - __Shuffle__ - 0 if shuffle is off, 1 if on.
 - __State__ - 0 if stopped, 1 for playing, 2 for paused.
 - __Status__ - 0 if MediaMonkey is closed, 1 if it is opened.
+- __Tempo__ - Tempo property of the current song.
 - __Title__ - Title of the current song.
 - __Volume__ - Player volume from 0 to 100.
 - __Year__ - Year of the current song.
+
 
 
 ### Bangs
