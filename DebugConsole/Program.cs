@@ -40,6 +40,9 @@ namespace Sample
             var lastplayed = new Measure();
             lastplayed.Reload(Measure.MeasureType.LastPlayedDate, api);
 
+            //var origTitle = new Measure();
+            //lastplayed.Reload(Measure.MeasureType.OriginalTitle, api);
+
             int count = 0;
             while (true)
             {
@@ -54,6 +57,7 @@ namespace Sample
                 Console.WriteLine("cover:" + cover.GetString());
                 Console.WriteLine("date added:" + dateAdded.GetString());
                 Console.WriteLine("last played:" + lastplayed.GetString());
+                //Console.WriteLine("originaltitle:" + origTitle.GetString());
                 Thread.Sleep(1000);
                 //title.ExecuteBang("TogglePlayer".Split(' '));
             }
