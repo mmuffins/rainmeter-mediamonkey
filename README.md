@@ -1,9 +1,8 @@
 # Rainmeter-MediaMonkey
 A rainmeter plugin for [MediaMonkey](http://www.mediamonkey.com). The plugin was designed with compatibility with the [official NowPlaying plugin](https://docs.rainmeter.net/manual-beta/plugins/nowplaying/) in mind, so most configurations for NowPlaying should be usable with minimal configuration changes.
-Since version 2.0 the plugin supports only MediaMonkey 5.xx. For older versions of MediaMonkey please use plugin version 1.2 or switch to the official NowPlaying plugin.
 
 ## Usage
-Copy MediaMonkey.dll in your \Rainmeter\Plugins directory and create a measure with settings Plugin=MediaMonkey.
+Copy MediaMonkey.dll to your \Rainmeter\Plugins directory and create a measure with settings Plugin=MediaMonkey.
 
 ## Parameters
 ### Settings
