@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "MediaMonkeyNet/2.2.0": {
+      "MediaMonkeyNet/3.0.0": {
         "dependencies": {
           "BaristaLabs.ChromeDevTools.Runtime": "67.0.3396.87",
           "Newtonsoft.Json": "13.0.1"
@@ -662,7 +662,7 @@
     }
   },
   "libraries": {
-    "MediaMonkeyNet/2.2.0": {
+    "MediaMonkeyNet/3.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
