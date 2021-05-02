@@ -122,7 +122,6 @@ namespace PluginMediaMonkey
                 tempSession = null;
             }
 
-
             if (tempSession == null)
             {
                 InitInProgress = false;
@@ -178,7 +177,8 @@ namespace PluginMediaMonkey
 
             try
             {
-                await mmSession.Player.RefreshTrackPositionAsync().ConfigureAwait(false);
+                await mmSession.RefreshCurrentTrackAsync().ConfigureAwait(false);
+                await mmSession.Player.RefreshAsync().ConfigureAwait(false);
             }
             catch (Newtonsoft.Json.JsonSerializationException ex)
             {
@@ -206,6 +206,7 @@ namespace PluginMediaMonkey
 
         public void Reload(MeasureType measureType, API api)
         {
+            RainmeterAPI = api;
             Type = measureType;
             if (mmSession == null)
             {
