@@ -233,6 +233,10 @@ namespace PluginMediaMonkey
                 return 0.0;
             }
 
+            if (!skipRefresh) { 
+                RefreshPlayer().GetAwaiter(); 
+            }
+
             switch (Type)
             {
                 case MeasureType.State:
@@ -248,13 +252,10 @@ namespace PluginMediaMonkey
                             return 0;
                     }
                 case MeasureType.Progress:
-                    if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
                     return Math.Round((mmSession.Player.Progress * 100), 3);
                 case MeasureType.Position:
-                    if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
                     return Math.Round((mmSession.Player.TrackPosition / 1000.0));
                 case MeasureType.Duration:
-                    if (!skipRefresh) { RefreshPlayer().GetAwaiter(); }
                     return Math.Round(mmSession.Player.TrackLength / 1000.0);
                 case MeasureType.Number:
                     return mmSession.CurrentTrack.TrackNumberInt;
