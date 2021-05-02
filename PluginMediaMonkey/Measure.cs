@@ -117,7 +117,7 @@ namespace PluginMediaMonkey
             }
             catch (Exception ex)
             {
-                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('InitMMSession'):{ex.Message}");
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error while establishing a connection to MediaMonkey ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
                 tempSession = null;
             }
@@ -154,13 +154,13 @@ namespace PluginMediaMonkey
             }
             catch (System.Net.Http.HttpRequestException ex)
             {
-                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to establish a connection to MediaMonkey ('InitMMSession'):{ex.Message}");
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to update player details ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
                 tempSession = null;
             }
             catch (Exception ex)
             {
-                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error ('InitMMSession'):{ex.Message}");
+                RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unknown error while updating player details ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
                 tempSession = null;
             }
