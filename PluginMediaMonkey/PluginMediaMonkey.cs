@@ -54,7 +54,7 @@ namespace PluginMediaMonkey
             }
 
             int startupDelay;
-            if (int.TryParse(api.ReadString("StartupDelay", "0", false), out startupDelay))
+            if (int.TryParse(api.ReadString("StartupDelay", "900", false), out startupDelay))
             {
                 measure.StartupDelay = startupDelay;
             }

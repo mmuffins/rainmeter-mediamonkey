@@ -88,7 +88,7 @@ namespace PluginMediaMonkey
 
         public MeasureType Type { get; set; }
         public API RainmeterAPI { get; set; }
-        public int StartupDelay { get; set; } = 0;
+        public int StartupDelay { get; set; } = 900;
         public string MMInstallLocation { get; set; }
         public bool DisableLeadingZero { get; set; }
         public IntPtr buffer = IntPtr.Zero;
