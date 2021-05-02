@@ -143,15 +143,6 @@ namespace PluginMediaMonkey
                     RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error parsing player state ('InitMMSession'):{ex.Message}");
                 }
 
-                try { tempSession.EnableUpdates().GetAwaiter(); }
-                catch (Exception ex)
-                {
-                    // Player will never get any updates, might as well just dispose it
-                    tempSession.Dispose();
-                    tempSession = null;
-                    RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error while enablig player updates ('InitMMSession'):{ex.Message}");
-                }
-
                 if (tempSession != null &&  tempSession.CurrentTrack != null)
                 {
                     await tempSession.CurrentTrack.LoadAlbumArt().ConfigureAwait(false);
@@ -359,7 +350,7 @@ namespace PluginMediaMonkey
                 case MeasureType.ISRC:
                     return mmSession.CurrentTrack.ISRC;
                 case MeasureType.LastPlayedDate:
-                    return mmSession.CurrentTrack.LastPlayed.ToString();
+                    return mmSession.CurrentTrack.LastTimePlayed.ToString();
                 case MeasureType.OriginalArtist:
                     return mmSession.CurrentTrack.OriginalArtist;
                 case MeasureType.OriginalLyricist:
