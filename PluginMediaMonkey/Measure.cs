@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using MediaMonkeyNet;
 using Microsoft.Win32;
 using Rainmeter;
+using System.Net;
+using System.Net.Http;
 
 namespace PluginMediaMonkey
 {
@@ -109,7 +111,7 @@ namespace PluginMediaMonkey
             {
                 await tempSession.OpenSessionAsync();
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Error while establishing a connection to MediaMonkey ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
@@ -152,7 +154,7 @@ namespace PluginMediaMonkey
                     mmSession = tempSession;
                 }
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to update player details ('InitMMSession'):{ex.Message}");
                 tempSession.Dispose();
@@ -186,7 +188,7 @@ namespace PluginMediaMonkey
                 mmSession.Dispose();
                 mmSession = null;
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 RainmeterAPI.LogF(API.LogType.Error, $"Mediamonkey.dll: Unable to establish a connection to MediaMonkey ('RefreshPlayer'):{ex.Message}");
                 mmSession.Dispose();

@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyCopyright("© 2021 - mmuffins")]
-[assembly: AssemblyVersion("2.0.1.0")]
+[assembly: AssemblyCopyright("2023 mmuffins")]
+[assembly: AssemblyVersion("2.0.2.0")]
 
 // Do not change the entries below!
 #if X64
