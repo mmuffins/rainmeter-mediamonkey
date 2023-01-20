@@ -7,9 +7,9 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "MediaMonkeyNet/3.0.0": {
+      "MediaMonkeyNet/3.0.1.191": {
         "dependencies": {
-          "BaristaLabs.ChromeDevTools.Runtime": "67.0.3396.87",
+          "BaristaLabs.ChromeDevTools.Runtime": "3.0.1.191",
           "NETStandard.Library": "2.0.3",
           "Newtonsoft.Json": "13.0.1"
         },
@@ -655,7 +655,7 @@
           }
         }
       },
-      "BaristaLabs.ChromeDevTools.Runtime/67.0.3396.87": {
+      "BaristaLabs.ChromeDevTools.Runtime/3.0.1.191": {
         "dependencies": {
           "Newtonsoft.Json": "13.0.1",
           "System.Threading.Tasks.Dataflow": "5.0.0",
@@ -668,7 +668,7 @@
     }
   },
   "libraries": {
-    "MediaMonkeyNet/3.0.0": {
+    "MediaMonkeyNet/3.0.1.191": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1128,7 +1128,7 @@
       "path": "websocket4net/0.15.2",
       "hashPath": "websocket4net.0.15.2.nupkg.sha512"
     },
-    "BaristaLabs.ChromeDevTools.Runtime/67.0.3396.87": {
+    "BaristaLabs.ChromeDevTools.Runtime/3.0.1.191": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
