@@ -44,8 +44,9 @@ jobs:
       run: |
         $NewVersion = 'AssemblyVersion("${{ env.VERSION }}")'
         $tmpFile = New-TemporaryFile
-        (Get-Content -Path ./AssemblyInfo.cs -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
-        Move-Item -Path $tmpFile -Destination ./AssemblyInfo.cs -Force
+        $assemblyInfoPath = "${{ github.workspace }}/PluginMediaMonkey/AssemblyInfo.cs"
+        (Get-Content -Path $assemblyInfoPath -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
+        Move-Item -Path $tmpFile -Destination $assemblyInfoPath -Force
 
     - name: Restore Packages
       shell: pwsh
