@@ -11,6 +11,7 @@ on:
 env:
   base_version_number: "2.0.2"
   build_configuration: "Release"
+  build_platform: "x64"
 
 jobs:
 
@@ -37,6 +38,15 @@ jobs:
         Write-Output "Setting version to $version"
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      
+    - name: Update Assembly Version
+      id: set-version
+      shell: pwsh
+      run: |
+		$NewVersion = 'AssemblyVersion("${{ env.VERSION }}")'
+		$tmpFile = New-TemporaryFile
+		(Get-Content -Path ./AssemblyInfo.cs -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
+		Move-Item -Path $tmpFile -Destination ./AssemblyInfo.cs -Force
 
     - name: Restore Packages
       shell: pwsh
@@ -45,10 +55,10 @@ jobs:
     - name: Build Solution
       shell: pwsh
       run: |
-        msbuild.exe MediaMonkey-Rainmeter.sln /nologo /nr:false /p:Version=${{ env.VERSION }} /p:DeployOnBuild=true /p:platform="Any CPU" /p:configuration="${{ env.build_configuration }}" /p:PublishUrl="${{ github.workspace }}/publish"
+		msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.VERSION }} /p:platform="${{ env.build_platform }}" /p:configuration="${{ env.build_configuration }}"
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: nuget
-        path: ${{ github.workspace }}/publish
+        path: ${{ github.workspace }}/PluginMediaMonkey/${{ env.build_platform }}/${{ env.build_configuration }}
