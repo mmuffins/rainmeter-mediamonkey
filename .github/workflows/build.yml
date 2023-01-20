@@ -9,8 +9,7 @@ on:
       - 'dependabot/**'
 
 env:
-  base_version_number: "2.0.2"
-  versionX: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
+  version: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
   build_configuration: "Release"
   build_platform: "x64"
 
@@ -31,19 +30,10 @@ jobs:
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
-    - name: Set version number
-      id: set-version
-      shell: pwsh
-      run: |
-        $version = "${{ env.base_version_number }}.${{ github.run_number }}${{ github.run_attempt }}"
-        Write-Output "Setting version to $version"
-        "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
     - name: Update Assembly Version
       shell: pwsh
       run: |
-        $NewVersion = 'AssemblyVersion("${{ env.versionX }}")'
+        $NewVersion = 'AssemblyVersion("${{ env.version }}")'
         $tmpFile = New-TemporaryFile
         $assemblyInfoPath = "${{ github.workspace }}/PluginMediaMonkey/AssemblyInfo.cs"
         (Get-Content -Path $assemblyInfoPath -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
@@ -56,12 +46,12 @@ jobs:
     - name: Build x64
       shell: pwsh
       run: |
-        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.versionX }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.version }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
     
     - name: Build x86
       shell: pwsh
       run: |
-        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.versionX }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.version }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
 
     - name: Move Artifacts
       shell: pwsh
@@ -87,4 +77,4 @@ jobs:
         path: ${{ github.workspace }}/publish/
         
     - name: Zip Files
-      run: Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ needs.build.outputs.version }}.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ env.version }}.zip"
