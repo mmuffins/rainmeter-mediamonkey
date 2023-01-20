@@ -43,3 +43,8 @@ jobs:
       shell: pwsh
       run: nuget restore MediaMonkey-Rainmeter.sln
 
+    - name: Build Solution
+      shell: pwsh
+      run: |
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.VERSION }} /p:platform="${{ env.build_platform }}" /p:configuration="${{ env.build_configuration }}"
+
