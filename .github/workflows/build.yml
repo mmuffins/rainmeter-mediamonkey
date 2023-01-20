@@ -10,6 +10,7 @@ on:
 
 env:
   base_version_number: "2.0.2"
+  versionX: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
   build_configuration: "Release"
   build_platform: "x64"
 
@@ -42,7 +43,7 @@ jobs:
     - name: Update Assembly Version
       shell: pwsh
       run: |
-        $NewVersion = 'AssemblyVersion("${{ env.VERSION }}")'
+        $NewVersion = 'AssemblyVersion("${{ env.versionX }}")'
         $tmpFile = New-TemporaryFile
         $assemblyInfoPath = "${{ github.workspace }}/PluginMediaMonkey/AssemblyInfo.cs"
         (Get-Content -Path $assemblyInfoPath -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
@@ -52,16 +53,27 @@ jobs:
       shell: pwsh
       run: nuget restore MediaMonkey-Rainmeter.sln
 
-    - name: Build Solution
+    - name: Build x64
       shell: pwsh
       run: |
-        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.VERSION }} /p:platform="${{ env.build_platform }}" /p:configuration="${{ env.build_configuration }}"
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.versionX }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
+    
+    - name: Build x86
+      shell: pwsh
+      run: |
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.versionX }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
+
+    - name: Move Artifacts
+      shell: pwsh
+      run: |
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x64"
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x86/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x86"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.build_configuration }}
-        path: ${{ github.workspace }}/PluginMediaMonkey/${{ env.build_platform }}/${{ env.build_configuration }}
+        name: build
+        path: ${{ github.workspace }}/Deploy
 
   release:
     runs-on: windows-latest
@@ -71,14 +83,8 @@ jobs:
     - name: Get plugin - x64
       uses: actions/download-artifact@v3
       with:
-        name: x64
-        path: ${{ github.workspace }}/publish/x64
+        name: build
+        path: ${{ github.workspace }}/publish/
         
     - name: Zip Files
       run: Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ needs.build.outputs.version }}.zip"
-      
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugin
-        path: ${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ needs.build.outputs.version }}.zip
