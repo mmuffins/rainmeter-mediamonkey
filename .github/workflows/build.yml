@@ -76,5 +76,12 @@ jobs:
         name: build
         path: ${{ github.workspace }}/publish/
         
+    - name: Move Artifacts
+      shell: pwsh
+      run: |
+        Move-Item -Path "${{ github.workspace }}/publish/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
+        Move-Item -Path "${{ github.workspace }}/publish/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
+
+        
     - name: Zip Files
-      run: Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ env.version }}.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}\publish\plugin\*" -DestinationPath "${{ github.workspace }}\publish\plugin\rainmeter-mediamonkey.v${{ env.version }}.zip"
