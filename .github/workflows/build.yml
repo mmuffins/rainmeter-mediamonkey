@@ -64,7 +64,6 @@ jobs:
         path: ${{ github.workspace }}/PluginMediaMonkey/${{ env.build_platform }}/${{ env.build_configuration }}
 
   release:
-    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
     runs-on: windows-latest
     needs: build
 
@@ -74,3 +73,12 @@ jobs:
       with:
         name: x64
         path: ${{ github.workspace }}/publish/x64
+        
+    - name: Zip Files
+      run: Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ needs.build.outputs.version }}.zip"
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugin
+        path: ${{ github.workspace }}\publish\rainmeter-mediamonkey.v${{ needs.build.outputs.version }}.zip
