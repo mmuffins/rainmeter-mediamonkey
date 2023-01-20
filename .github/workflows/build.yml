@@ -42,7 +42,10 @@ jobs:
     - name: Update Assembly Version
       shell: pwsh
       run: |
-        $version = "${{ env.base_version_number }}.${{ github.run_number }}${{ github.run_attempt }}"
+        $NewVersion = 'AssemblyVersion("${{ env.VERSION }}")'
+        $tmpFile = New-TemporaryFile
+        (Get-Content -Path ./AssemblyInfo.cs -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
+        Move-Item -Path $tmpFile -Destination ./AssemblyInfo.cs -Force
 
     - name: Restore Packages
       shell: pwsh
