@@ -48,3 +48,8 @@ jobs:
       run: |
         msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.VERSION }} /p:platform="${{ env.build_platform }}" /p:configuration="${{ env.build_configuration }}"
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: nuget
+        path: ${{ github.workspace }}/PluginMediaMonkey/${{ env.build_platform }}/${{ env.build_configuration }}
