@@ -39,11 +39,6 @@ jobs:
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Update Assembly Version
-      shell: pwsh
-      run: |
-	$NewVersion = 'AssemblyVersion("${{ env.VERSION }}")'
-
     - name: Restore Packages
       shell: pwsh
       run: nuget restore MediaMonkey-Rainmeter.sln
@@ -52,7 +47,7 @@ jobs:
       shell: pwsh
       run: |
 	msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.VERSION }} /p:platform="${{ env.build_platform }}" /p:configuration="${{ env.build_configuration }}"
-        
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
