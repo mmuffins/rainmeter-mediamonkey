@@ -39,6 +39,11 @@ jobs:
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
+    - name: Update Assembly Version
+      shell: pwsh
+      run: |
+        $version = "${{ env.base_version_number }}.${{ github.run_number }}${{ github.run_attempt }}"
+
     - name: Restore Packages
       shell: pwsh
       run: nuget restore MediaMonkey-Rainmeter.sln
