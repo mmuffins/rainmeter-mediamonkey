@@ -60,5 +60,17 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: nuget
+        name: ${{ env.build_configuration }}
         path: ${{ github.workspace }}/PluginMediaMonkey/${{ env.build_platform }}/${{ env.build_configuration }}
+
+  release:
+    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+    - name: Get plugin - x64
+      uses: actions/download-artifact@v3
+      with:
+        name: x64
+        path: ${{ github.workspace }}/publish/x64
