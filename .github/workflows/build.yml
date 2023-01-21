@@ -22,49 +22,6 @@ jobs:
       version: ${{ steps.set-version.outputs.VERSION }}
 
     steps:
-    
-    - name: Create release
-      uses: actions/github-script@v6
-      id: create-release
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const {data: newRelease} = await github.rest.repos.createRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            name: 'v${{ env.version }}',
-            tag_name: 'v${{ env.version }}',
-            generate_release_notes: true,
-            draft: true,
-            prerelease: false
-          });
-          console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
-          core.setOutput("url", newRelease.html_url)
-          core.setOutput("id", newRelease.id)
-
-    - name: test
-      shell: pwsh
-      run: |
-        New-Item -Path "${{ github.workspace }}/X" -Type Directory
-        "xxx" > "${{ github.workspace }}/X/e.txt"
-        Write-Output "${{ steps.create-release.outputs.id }}"
-    
-    - name: Upload Release Assets
-      uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const fs = require('fs').promises
-          const attachment = await fs.readFile("./X/e.txt")
-          await github.rest.repos.uploadReleaseAsset({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: '${{ steps.create-release.outputs.id }}',
-            data: attachment,
-            name: 'e.txt'
-          });
-
-    
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -165,11 +122,11 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs').promises
-          const attachment = await fs.readFile("./X/e.txt")
+          const attachment = await fs.readFile("./publish/rainmeter-mediamonkey.v${{ env.version }}.zip")
           await github.rest.repos.uploadReleaseAsset({
             owner: context.repo.owner,
             repo: context.repo.repo,
             release_id: '${{ steps.create-release.outputs.id }}',
             data: attachment,
-            name: 'e.txt'
+            name: 'rainmeter-mediamonkey.v${{ env.version }}.zip'
           });
