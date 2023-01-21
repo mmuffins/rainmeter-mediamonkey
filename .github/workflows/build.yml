@@ -159,14 +159,17 @@ jobs:
           core.setOutput("url", newRelease.html_url)
           core.setOutput("id", newRelease.id)
         
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload Release Assets
+      uses: actions/github-script@v6
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip 
-        asset_name: AnidbExportParser.zip
-        asset_content_type: application/zip
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs').promises
+          const attachment = await fs.readFile("./X/e.txt")
+          await github.rest.repos.uploadReleaseAsset({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: '${{ steps.create-release.outputs.id }}',
+            data: attachment,
+            name: 'e.txt'
+          });
