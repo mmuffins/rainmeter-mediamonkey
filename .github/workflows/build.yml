@@ -2,19 +2,20 @@ name: build
 
 on:
   workflow_dispatch:
-  pull_request:
   push:
     branches: 
       - main
       - 'dependabot/**'
-
+  pull_request:
+    branches: 
+      - main
+      - 'dependabot/**'
 env:
   version: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
   build_configuration: "Release"
   build_platform: "x64"
 
 jobs:
-
   build:
     runs-on: windows-latest
     timeout-minutes: 10
@@ -56,32 +57,78 @@ jobs:
     - name: Move Artifacts
       shell: pwsh
       run: |
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x64" -Force
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x86" -Force
+        New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x64" -Force
+        
+        New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x32" -Force
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build
         path: ${{ github.workspace }}/Deploy
+        
+    - name: Move Release Artifacts
+      shell: pwsh
+      run: |
+        New-Item -Path "${{ github.workspace }}/publish/x64" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/deploy/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x64" -Force
+        
+        New-Item -Path "${{ github.workspace }}/publish/x86" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/deploy/x32/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x86" -Force
+
+    - name: Zip Release Artifacts
+      run: Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip"
+    
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release
+        path: ${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip
 
   release:
     runs-on: windows-latest
+    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
     needs: build
 
     steps:
     - name: Get plugin - x64
       uses: actions/download-artifact@v3
       with:
-        name: build
+        name: release
         path: ${{ github.workspace }}/publish/
         
-    - name: Move Artifacts
-      shell: pwsh
-      run: |
-        Move-Item -Path "${{ github.workspace }}/publish/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
-        Move-Item -Path "${{ github.workspace }}/publish/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
-
+    - name: Create release
+      uses: actions/github-script@v6
+      id: create-release
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const {data: newRelease} = await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: 'v${{ env.version }}',
+            tag_name: 'v${{ env.version }}',
+            generate_release_notes: true,
+            draft: true,
+            prerelease: false
+          });
+          console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
+          core.setOutput("url", newRelease.html_url)
+          core.setOutput("id", newRelease.id)
         
-    - name: Zip Files
-      run: Compress-Archive -Path "${{ github.workspace }}\publish\plugin\*" -DestinationPath "${{ github.workspace }}\publish\plugin\rainmeter-mediamonkey.v${{ env.version }}.zip"
+    - name: Upload Release Assets
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs').promises
+          const attachment = await fs.readFile("./publish/rainmeter-mediamonkey.v${{ env.version }}.zip")
+          await github.rest.repos.uploadReleaseAsset({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: '${{ steps.create-release.outputs.id }}',
+            data: attachment,
+            name: 'rainmeter-mediamonkey.v${{ env.version }}.zip'
+          });
