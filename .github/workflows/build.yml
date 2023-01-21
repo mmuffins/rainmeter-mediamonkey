@@ -32,8 +32,8 @@ jobs:
             await github.rest.repos.createRelease({
               draft: true,
               generate_release_notes: true,
-              name: 'v4.0.0',
-              tag_name: 'v4.0.0',
+              name: 'v${{ env.version }}',
+              tag_name: 'v${{ env.version }}',
               owner: '${{ github.repository_owner }}',
               prerelease: false,
               repo: '${{ github.event.repository.name }}'
