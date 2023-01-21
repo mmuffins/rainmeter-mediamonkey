@@ -56,6 +56,15 @@ jobs:
     - name: Move Artifacts
       shell: pwsh
       run: |
+        Write-Output "1"
+        Get-Childitem "${{ github.workspace }}"
+        Write-Output "2"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey"
+        Write-Output "3"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x64"
+        Write-Output "3"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x32"
+        Write-Output "4"
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x64" -Force
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x86" -Force
 
