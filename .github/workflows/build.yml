@@ -39,7 +39,8 @@ jobs:
             prerelease: false
           });
           console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
-          core.setOutput("id", newRelease.id);
+          core.setOutput("url", newRelease.html_url)
+          core.setOutput("id", newRelease.id)
 
     - name: test
       shell: pwsh
@@ -54,9 +55,9 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           await github.rest.repos.uploadReleaseAsset({
-            owner: '${{ github.repository_owner }}',
-            repo: '${{ github.event.repository.name }}',
-            release_id: 'xx'
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: '${{ steps.create-release.outputs.id }}'
           });
 
     
@@ -141,7 +142,7 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          await github.rest.repos.createRelease({
+          const {data: newRelease} = await github.rest.repos.createRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
             name: 'v${{ env.version }}',
@@ -150,6 +151,9 @@ jobs:
             draft: true,
             prerelease: false
           });
+          console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
+          core.setOutput("url", newRelease.html_url)
+          core.setOutput("id", newRelease.id)
         
     - name: Upload Release Asset
       id: upload-release-asset 
