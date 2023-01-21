@@ -34,9 +34,9 @@ jobs:
               generate_release_notes: true,
               name: v4.0.0,
               tag_name: v4.0.0,
-              owner: context.repo.owner,
+              owner: '${{ github.repository_owner }}',
               prerelease: false,
-              repo: context.repo.repo
+              repo: '${{ github.repository }}'
             });
           } catch (error) {
             core.setFailed(error.message);
@@ -54,7 +54,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           try {
-            await github.rest.repos.createRelease({
+            await github.rest.repos.uploadReleaseAsset({
               draft: true,
               generate_release_notes: true,
               name: 'v4.0.0',
