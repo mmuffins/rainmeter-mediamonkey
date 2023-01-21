@@ -38,15 +38,15 @@ jobs:
             draft: true,
             prerelease: false
           });
-          console.log(`Release has been created ${newRelease.html_url}`)
-          console.log(`id ${newRelease.id}`)
+          console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
+          core.setOutput("id", newRelease.id);
 
     - name: test
       shell: pwsh
       run: |
         New-Item -Path "${{ github.workspace }}/X" -Type Directory
         New-Item -Path "${{ github.workspace }}/X/e.txt" -Type File
-        Write-Output "${{ steps.create-release.outputs.result }}"
+        Write-Output "${{ steps.create-release.outputs.id }}"
     
     - name: Upload Release Assets
       uses: actions/github-script@v6
