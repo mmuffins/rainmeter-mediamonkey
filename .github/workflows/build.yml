@@ -2,12 +2,14 @@ name: build
 
 on:
   workflow_dispatch:
-  pull_request:
   push:
     branches: 
       - main
       - 'dependabot/**'
-
+  pull_request:
+    branches: 
+      - main
+      - 'dependabot/**'
 env:
   version: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
   build_configuration: "Release"
