@@ -46,7 +46,7 @@ jobs:
       shell: pwsh
       run: |
         New-Item -Path "${{ github.workspace }}/X" -Type Directory
-        New-Item -Path "${{ github.workspace }}/X/e.txt" -Type File
+        "xxx" > "${{ github.workspace }}/X/e.txt"
         Write-Output "${{ steps.create-release.outputs.id }}"
     
     - name: Upload Release Assets
