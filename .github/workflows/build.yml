@@ -80,13 +80,13 @@ jobs:
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/bin/${{ env.build_configuration }}/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x86" -Force
 
     - name: Zip Release Artifacts
-      run: Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/publish/rainmeter-mediamonkey_${{ env.version }}.zip"
     
     - name: Upload release artifacts
       uses: actions/upload-artifact@v3
       with:
         name: release
-        path: ${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip
+        path: ${{ github.workspace }}/publish/rainmeter-mediamonkey_${{ env.version }}.zip
 
   release:
     runs-on: windows-latest
@@ -109,7 +109,7 @@ jobs:
           const {data: newRelease} = await github.rest.repos.createRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            name: 'v${{ env.version }}',
+            name: 'Rainmeter MediaMonkey Plugin ${{ env.version }}',
             tag_name: 'v${{ env.version }}',
             generate_release_notes: true,
             draft: true,
@@ -125,11 +125,11 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs').promises
-          const attachment = await fs.readFile("./publish/rainmeter-mediamonkey.v${{ env.version }}.zip")
+          const attachment = await fs.readFile("./publish/rainmeter-mediamonkey_${{ env.version }}.zip")
           await github.rest.repos.uploadReleaseAsset({
             owner: context.repo.owner,
             repo: context.repo.repo,
             release_id: '${{ steps.create-release.outputs.id }}',
             data: attachment,
-            name: 'rainmeter-mediamonkey.v${{ env.version }}.zip'
+            name: 'rainmeter-mediamonkey_${{ env.version }}.zip'
           });
