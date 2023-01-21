@@ -32,11 +32,11 @@ jobs:
             await github.rest.repos.createRelease({
               draft: true,
               generate_release_notes: true,
-              name: ${{ env.version }},
+              name: v4.0.0,
+              tag_name: v4.0.0,
               owner: context.repo.owner,
               prerelease: false,
-              repo: context.repo.repo,
-              tag_name: ${{ env.version }},
+              repo: context.repo.repo
             });
           } catch (error) {
             core.setFailed(error.message);
