@@ -73,7 +73,7 @@ jobs:
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/Deploy/x64" -Force
         
         New-Item -Path "${{ github.workspace }}/Deploy/x32" -Type Directory
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/Deploy/x86" -Force
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/Deploy/x32" -Force
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
@@ -95,18 +95,20 @@ jobs:
     - name: Move Artifacts
       shell: pwsh
       run: |
+        New-Item -Path "${{ github.workspace }}/publish/plugin/x64" -Type Directory
         Move-Item -Path "${{ github.workspace }}/publish/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
-        Move-Item -Path "${{ github.workspace }}/publish/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x64" -Force
-
         
+        New-Item -Path "${{ github.workspace }}/publish/plugin/x86" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/publish/x32/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/plugin/x86" -Force
+
     - name: Zip Files
       run: Compress-Archive -Path "${{ github.workspace }}/publish/plugin/*" -DestinationPath "${{ github.workspace }}/publish/plugin/rainmeter-mediamonkey.v${{ env.version }}.zip"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: releaseartifact
-        path: ${{ github.workspace }}/plugin
+        name: plugin
+        path: ${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip 
 
     - name: Create Release
       uses: actions/create-release@v1
@@ -128,6 +130,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}\publish\rainmeter-mediamonkey.v1.2.zip 
+        asset_path: ${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip 
         asset_name: AnidbExportParser.zip
         asset_content_type: application/zip
