@@ -57,26 +57,27 @@ jobs:
     - name: Move Artifacts
       shell: pwsh
       run: |
-        New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x64" -Force
+        Write-Host "a"
+        # New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
+        # Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x64" -Force
         
-        New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x32" -Force
+        # New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
+        # Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x32" -Force
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build
-        path: ${{ github.workspace }}/Deploy
+        path: ${{ github.workspace }}/PluginMediaMonkey/bin/
         
     - name: Move Release Artifacts
       shell: pwsh
       run: |
         New-Item -Path "${{ github.workspace }}/publish/x64" -Type Directory
-        Move-Item -Path "${{ github.workspace }}/deploy/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x64" -Force
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/bin/${{ env.build_configuration }}/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x64" -Force
         
         New-Item -Path "${{ github.workspace }}/publish/x86" -Type Directory
-        Move-Item -Path "${{ github.workspace }}/deploy/x32/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x86" -Force
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/bin/${{ env.build_configuration }}/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x86" -Force
 
     - name: Zip Release Artifacts
       run: Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/publish/rainmeter-mediamonkey.v${{ env.version }}.zip"
