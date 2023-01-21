@@ -62,9 +62,13 @@ jobs:
         Get-Childitem "${{ github.workspace }}/PluginMediaMonkey"
         Write-Output "3"
         Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x64"
-        Write-Output "3"
-        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x32"
         Write-Output "4"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x32"
+        Write-Output "5"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}"
+        Write-Output "6"
+        Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}"
+        Write-Output "7"
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x64" -Force
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x86" -Force
 
