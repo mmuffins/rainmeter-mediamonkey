@@ -42,6 +42,12 @@ jobs:
             core.setFailed(error.message);
           }
     
+    - name: test
+      shell: pwsh
+      run: |
+        New-Item -Path "${{ github.workspace }}/X" -Type Directory
+        New-Item -Path "${{ github.workspace }}/X/e.txt" -Type File
+    
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -117,22 +123,7 @@ jobs:
         name: release
         path: ${{ github.workspace }}/publish/
         
-    - name: Create Release
-      uses: actions/github-script@v6
-      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{ needs.build.outputs.version }}',
-            sha: context.sha
-          })
-
         
-        
-
-
         
     - name: Upload Release Asset
       id: upload-release-asset 
