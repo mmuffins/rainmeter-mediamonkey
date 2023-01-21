@@ -29,7 +29,7 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          await github.rest.repos.createRelease({
+          const {data: newRelease} = await github.rest.repos.createRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
             name: 'v${{ env.version }}',
@@ -38,6 +38,7 @@ jobs:
             draft: true,
             prerelease: false
           });
+          console.log(`Release has been created ${newRelease.html_url}`)
 
     - name: test
       shell: pwsh
