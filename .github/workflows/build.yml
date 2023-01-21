@@ -69,8 +69,11 @@ jobs:
         Write-Output "6"
         Get-Childitem "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}"
         Write-Output "7"
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x64" -Force
-        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}" -Destination "${{ github.workspace }}/Deploy/x86" -Force
+        New-Item -Path "${{ github.workspace }}/Deploy/x64" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/Deploy/x64" -Force
+        
+        New-Item -Path "${{ github.workspace }}/Deploy/x32" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/Deploy/x86" -Force
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
@@ -97,4 +100,34 @@ jobs:
 
         
     - name: Zip Files
-      run: Compress-Archive -Path "${{ github.workspace }}\publish\plugin\*" -DestinationPath "${{ github.workspace }}\publish\plugin\rainmeter-mediamonkey.v${{ env.version }}.zip"
+      run: Compress-Archive -Path "${{ github.workspace }}/publish/plugin/*" -DestinationPath "${{ github.workspace }}/publish/plugin/rainmeter-mediamonkey.v${{ env.version }}.zip"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: releaseartifact
+        path: ${{ github.workspace }}/plugin
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+      id: create_release
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.run_id }}
+        release_name: Release ${{ github.run_id }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}\publish\rainmeter-mediamonkey.v1.2.zip 
+        asset_name: AnidbExportParser.zip
+        asset_content_type: application/zip
