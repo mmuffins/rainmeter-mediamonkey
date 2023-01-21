@@ -48,6 +48,25 @@ jobs:
         New-Item -Path "${{ github.workspace }}/X" -Type Directory
         New-Item -Path "${{ github.workspace }}/X/e.txt" -Type File
     
+    - name: Upload Release Assets
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          try {
+            await github.rest.repos.createRelease({
+              draft: true,
+              generate_release_notes: true,
+              name: 'v4.0.0',
+              tag_name: 'v4.0.0',
+              owner: '${{ github.repository_owner }}',
+              prerelease: false,
+              repo: '${{ github.repository }}'
+            });
+          } catch (error) {
+            core.setFailed(error.message);
+          }
+    
     - name: Checkout
       uses: actions/checkout@v3
       with:
