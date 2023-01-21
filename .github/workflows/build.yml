@@ -23,46 +23,39 @@ jobs:
 
     steps:
     
-
     - name: Create release
       uses: actions/github-script@v6
+      id: create-release
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-            await github.rest.repos.createRelease({
-              draft: true,
-              generate_release_notes: true,
-              name: 'v${{ env.version }}',
-              tag_name: 'v${{ env.version }}',
-              owner: '${{ github.repository_owner }}',
-              prerelease: false,
-              repo: '${{ github.event.repository.name }}'
-            });
+          await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: '${{ github.event.repository.name }}',
+            name: 'v${{ env.version }}',
+            tag_name: 'v${{ env.version }}',
+            generate_release_notes: true,
+            draft: true,
+            prerelease: false
+          });
 
     - name: test
       shell: pwsh
       run: |
         New-Item -Path "${{ github.workspace }}/X" -Type Directory
         New-Item -Path "${{ github.workspace }}/X/e.txt" -Type File
+        Write-Output "${{ steps.create-release.outputs.result }}"
     
     - name: Upload Release Assets
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          try {
-            await github.rest.repos.uploadReleaseAsset({
-              draft: true,
-              generate_release_notes: true,
-              name: 'v4.0.0',
-              tag_name: 'v4.0.0',
-              owner: '${{ github.repository_owner }}',
-              prerelease: false,
-              repo: '${{ github.repository }}'
-            });
-          } catch (error) {
-            core.setFailed(error.message);
-          }
+          await github.rest.repos.uploadReleaseAsset({
+            owner: '${{ github.repository_owner }}',
+            repo: '${{ github.event.repository.name }}'
+          });
+
     
     - name: Checkout
       uses: actions/checkout@v3
@@ -139,7 +132,21 @@ jobs:
         name: release
         path: ${{ github.workspace }}/publish/
         
-        
+    - name: Create release
+      uses: actions/github-script@v6
+      id: create-release
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.repos.createRelease({
+            owner: '${{ github.repository_owner }}',
+            repo: '${{ github.event.repository.name }}',
+            name: 'v${{ env.version }}',
+            tag_name: 'v${{ env.version }}',
+            generate_release_notes: true,
+            draft: true,
+            prerelease: false
+          });
         
     - name: Upload Release Asset
       id: upload-release-asset 
