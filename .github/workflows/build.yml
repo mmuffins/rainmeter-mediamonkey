@@ -14,7 +14,6 @@ env:
   build_platform: "x64"
 
 jobs:
-
   build:
     runs-on: windows-latest
     timeout-minutes: 10
@@ -88,6 +87,7 @@ jobs:
 
   release:
     runs-on: windows-latest
+    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
     needs: build
 
     steps:
