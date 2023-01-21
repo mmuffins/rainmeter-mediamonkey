@@ -56,10 +56,10 @@ jobs:
     - name: Move Artifacts
       shell: pwsh
       run: |
-        # New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
+        New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x64" -Force
         
-        # New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
+        New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
         Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x32" -Force
 
     - name: Upload build artifacts
@@ -96,9 +96,21 @@ jobs:
       with:
         name: release
         path: ${{ github.workspace }}/publish/
+        
+    - name: Create Release
+      uses: actions/github-script@v5
+      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{ needs.build.outputs.version }}',
+            sha: context.sha
+          })
 
     - name: Create Release
-      uses: actions/create-release@v1
+      uses: actions/create-release@v6
       if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
       id: create_release
       env:
@@ -108,6 +120,28 @@ jobs:
         release_name: Release ${{ github.run_id }}
         draft: false
         prerelease: false
+        
+        
+    - name: "Create release"
+      uses: actions/github-script@v6
+      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+      with:
+        github-token: "${{ secrets.ERGEBNIS_BOT_TOKEN }}"
+        script: |
+          try {
+            await github.rest.repos.createRelease({
+              draft: false,
+              generate_release_notes: true,
+              name: process.env.RELEASE_TAG,
+              owner: context.repo.owner,
+              prerelease: false,
+              repo: context.repo.repo,
+              tag_name: process.env.RELEASE_TAG,
+            });
+          } catch (error) {
+            core.setFailed(error.message);
+          }
+
         
     - name: Upload Release Asset
       id: upload-release-asset 
