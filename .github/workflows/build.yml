@@ -54,8 +54,8 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const fs = require('fs-extra')
-          const attachment = fs.readFileSync("${{ github.workspace }}/X/e.txt");
+          const fs = require('fs').promises
+          const attachment = await fs.readFile("${{ github.workspace }}/X/e.txt")
           await github.rest.repos.uploadReleaseAsset({
             owner: context.repo.owner,
             repo: context.repo.repo,
