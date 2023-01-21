@@ -39,6 +39,7 @@ jobs:
             prerelease: false
           });
           console.log(`Release has been created ${newRelease.html_url}`)
+          console.log(`id ${newRelease.id}`)
 
     - name: test
       shell: pwsh
@@ -54,7 +55,8 @@ jobs:
         script: |
           await github.rest.repos.uploadReleaseAsset({
             owner: '${{ github.repository_owner }}',
-            repo: '${{ github.event.repository.name }}'
+            repo: '${{ github.event.repository.name }}',
+            release_id: 'xx'
           });
 
     
