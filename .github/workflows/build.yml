@@ -2,18 +2,17 @@ name: build
 
 on:
   workflow_dispatch:
-  pull_request:
   push:
     branches: 
       - main
-      - 'dependabot/**'
+  pull_request:
 
 env:
-  base_version_number: "2.0.2"
+  version: "2.0.2.${{ github.run_number }}${{ github.run_attempt }}"
   build_configuration: "Release"
+  build_platform: "x64"
 
 jobs:
-
   build:
     runs-on: windows-latest
     timeout-minutes: 10
@@ -27,28 +26,107 @@ jobs:
         fetch-depth: 0
 
     - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v1.1.3
-      
-    - name: Set version number
-      id: set-version
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Update Assembly Version
       shell: pwsh
       run: |
-        $version = "${{ env.base_version_number }}.${{ github.run_number }}${{ github.run_attempt }}"
-        Write-Output "Setting version to $version"
-        "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $NewVersion = 'AssemblyVersion("${{ env.version }}")'
+        $tmpFile = New-TemporaryFile
+        $assemblyInfoPath = "${{ github.workspace }}/PluginMediaMonkey/AssemblyInfo.cs"
+        (Get-Content -Path $assemblyInfoPath -Encoding utf8) -replace 'AssemblyVersion\(".*"\)', $NewVersion | Set-Content -Path $tmpFile -Encoding utf8
+        Move-Item -Path $tmpFile -Destination $assemblyInfoPath -Force
 
     - name: Restore Packages
       shell: pwsh
       run: nuget restore MediaMonkey-Rainmeter.sln
 
-    - name: Build Solution
+    - name: Build x64
       shell: pwsh
       run: |
-        msbuild.exe MediaMonkey-Rainmeter.sln /nologo /nr:false /p:Version=${{ env.VERSION }} /p:DeployOnBuild=true /p:platform="Any CPU" /p:configuration="${{ env.build_configuration }}" /p:PublishUrl="${{ github.workspace }}/publish"
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.version }} /p:platform="x64" /p:configuration="${{ env.build_configuration }}"
+    
+    - name: Build x86
+      shell: pwsh
+      run: |
+        msbuild.exe MediaMonkey-Rainmeter.sln /t:Build /nologo /nr:false /p:Version=${{ env.version }} /p:platform="x86" /p:configuration="${{ env.build_configuration }}"
+
+    - name: Move Artifacts
+      shell: pwsh
+      run: |
+        Write-Host "a"
+        # New-Item -Path "${{ github.workspace }}/deploy/x64" -Type Directory
+        # Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x64/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x64" -Force
         
+        # New-Item -Path "${{ github.workspace }}/deploy/x32" -Type Directory
+        # Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/x32/${{ env.build_configuration }}/*" -Destination "${{ github.workspace }}/deploy/x32" -Force
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: nuget
-        path: ${{ github.workspace }}/publish
+        name: build
+        path: ${{ github.workspace }}/PluginMediaMonkey/bin/
+        
+    - name: Move Release Artifacts
+      shell: pwsh
+      run: |
+        New-Item -Path "${{ github.workspace }}/publish/x64" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/bin/${{ env.build_configuration }}/x64/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x64" -Force
+        
+        New-Item -Path "${{ github.workspace }}/publish/x86" -Type Directory
+        Move-Item -Path "${{ github.workspace }}/PluginMediaMonkey/bin/${{ env.build_configuration }}/x86/MediaMonkey.dll" -Destination "${{ github.workspace }}/publish/x86" -Force
+
+    - name: Zip Release Artifacts
+      run: Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/publish/rainmeter-mediamonkey_${{ env.version }}.zip"
+    
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release
+        path: ${{ github.workspace }}/publish/rainmeter-mediamonkey_${{ env.version }}.zip
+
+  release:
+    runs-on: windows-latest
+    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
+    needs: build
+
+    steps:
+    - name: Get plugin - x64
+      uses: actions/download-artifact@v3
+      with:
+        name: release
+        path: ${{ github.workspace }}/publish/
+        
+    - name: Create release
+      uses: actions/github-script@v6
+      id: create-release
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const {data: newRelease} = await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: 'Rainmeter MediaMonkey Plugin ${{ env.version }}',
+            tag_name: 'v${{ env.version }}',
+            generate_release_notes: true,
+            draft: true,
+            prerelease: false
+          });
+          console.log(`Release has been created with id ${newRelease.id}: ${newRelease.html_url}`)
+          core.setOutput("url", newRelease.html_url)
+          core.setOutput("id", newRelease.id)
+        
+    - name: Upload Release Assets
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs').promises
+          const attachment = await fs.readFile("./publish/rainmeter-mediamonkey_${{ env.version }}.zip")
+          await github.rest.repos.uploadReleaseAsset({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: '${{ steps.create-release.outputs.id }}',
+            data: attachment,
+            name: 'rainmeter-mediamonkey_${{ env.version }}.zip'
+          });

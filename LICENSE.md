@@ -1,7 +1,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2017 Michael Kellner
+Copyright (c) 2023 mmuffins
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,18 @@ SOFTWARE.
 
 Third party software and libraries used:
 
-MediaMonkeyNet https://github.com/mmuffins/MediaMonkeyNet
-Copyright (c) 2017 Michael Kellner
-License (MIT) https://github.com/mmuffins/MediaMonkeyNet/blob/master/LICENSE
+Newtonsoft.Json http://www.newtonsoft.com/json
+Copyright (c) 2007 James Newton-King
+License (MIT) https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/master/LICENSE.md
 
+Fody https://github.com/Fody/Fody
+Copyright (c) Simon Cropp
+License (MIT) https://github.com/Fody/Fody/blob/master/License.txt
+
+Costura Fody https://github.com/Fody/Costura
+Copyright (c) 2012 Simon Cropp and contributors
+License (MIT) https://github.com/Fody/Costura/blob/develop/LICENSE
+
+MediaMonkeyNet https://github.com/mmuffins/MediaMonkeyNet
+Copyright (c) 2021 mmuffins
+License (MIT) https://github.com/mmuffins/MediaMonkeyNet/blob/master/LICENSE
